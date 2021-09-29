@@ -104,4 +104,18 @@ export default class Gameboard {
     return this.grid;
   }
 
+  /**
+   * Have all ships been sunk on the gameboard?
+   */
+  allShipsSunk() {
+    let status = true;
+    this.ships.forEach(ship => {
+      if (!ship.isSunk()) {
+        status = false;
+      }
+    });
+
+    return status;
+  }
+
 }

@@ -117,4 +117,14 @@ describe("Gameboard: Receiving Attacks", () => {
     expect(gb.receiveAttack(0, 0)).toEqual(-1);
   });
 
+  it("Based on receiving attacks, the gameboard returns whether or not all ships have been sunk.", () => {
+    gb.placeShip(1, 0, 0, false);
+
+    expect(gb.allShipsSunk()).toBe(false);
+
+    gb.receiveAttack(0,0);
+
+    expect(gb.allShipsSunk()).toBe(true);
+  });
+
 })
