@@ -21,32 +21,27 @@ export default class Ship {
   constructor(length) {
     this.length = length ?? 1;
    
-    this.status = [];
-    for (let i = 0; i < length; i++) {
-      this.status.push(false);
-    }
+    this.status = {};
   }
 
   /**
    * Marks the ship hit at given location.
    * @param {number} location 
    */
-  hit(location) {
-    if (location >= this.length) {
-      return;
-    }
-    this.status[location] = true;
+  hit(x, y) {
+    let id = `${x},${y}`;
+    this.status[id] = true;
   }
 
   /**
    * Determines if the ship has been entirely sunk yet.
    */
   isSunk() {
-    this.status.forEach(part => {
-      if (part === false) {
+    for (let prop in this.status) {
+      if (!this.status[prop]) {
         return false;
-      }
-    })
+      } 
+    }
     return true;
   }
 }

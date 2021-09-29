@@ -5,10 +5,12 @@ import Gameboard from "../js/gameboard";
  * Testing the fields and attributes of the ship class.
  */
 describe('Testing Ship class...', () => {
+  let gb;
   let ship;
 
   beforeEach(() => {
-    ship = new Ship(2);
+    gb = new Gameboard();
+    ship = gb.placeShip(3, 0, 0, false);
   });
 
   it("Ships have length", () => {
@@ -16,29 +18,30 @@ describe('Testing Ship class...', () => {
   });
   
   it("Ships have a status metric indicating if they've been hit.", () => {
-    expect(ship.status).toEqual([false, false]);
+    expect(ship.status).toEqual({"0,0": false, "0,1":false, "0,2":false});
   });
 
   it("Ships can be hit; hitting them should affect their" +
       " status.", () => {
-    ship.hit(0);
-    expect(ship.status).toEqual([true, false]);
+    gb.receiveAttack(0, 1);
+    expect(ship.status).toEqual({"0,0": false, "0,1":true, "0,2":false});
   });
 
   it("Ships can be hit; any hit beyond their length should not affect their " +
   " status.", () => {
-    ship.hit(3);
-    expect(ship.status).toEqual([false, false]);
+    gb.receiveAttack(0, 3);
+    expect(ship.status).toEqual({"0,0": false, "0,1":false, "0,2":false});
   });
   
-  it("We can tell if a ship has been sunk.", () => {
-    ship.hit(0);
-    ship.hit(1);
-    expect(ship.isSunk()).toBe(true);
+  it("isSunk() is true if the ship has been fully hit.", () => {
+    gb.receiveAttack(0, 0);
+    gb.receiveAttack(0, 1);
+    gb.receiveAttack(0, 2);
+    expect(gb.ships[0].isSunk()).toBe(true);
   });
 });
 
-describe("Testing Gameboard class...", () => {
+describe("Testing Gameboard placement...", () => {
   let gb;
   beforeEach(() => {
     gb = new Gameboard();
@@ -47,15 +50,15 @@ describe("Testing Gameboard class...", () => {
   it("Ships can be placed on the gameboard",
     () => {
       gb.placeShip(2, 0, 0, false);
-      expect(gb.getGrid()[0]).toEqual(["2","2",'','','','','','','','']);
+      expect(gb.getGrid()[0]).toEqual([0,0,'','','','','','','','']);
     });
 
     it("Ships can be placed vertically.",
     () => {
       gb.placeShip(2, 0, 0, true);
 
-      expect(gb.getGrid()[0]).toEqual(['2','','','','','','','','','']);
-      expect(gb.getGrid()[1]).toEqual(['2','','','','','','','','','']);
+      expect(gb.getGrid()[0]).toEqual([0,'','','','','','','','','']);
+      expect(gb.getGrid()[1]).toEqual([0,'','','','','','','','','']);
     });
 
     it("Ships which extend outside of the edge of the board cannot be placed.",
@@ -74,7 +77,44 @@ describe("Testing Gameboard class...", () => {
 
       expect(gb.placeShip(2, 0, 0, false)).toBeNull();
     });
-
 });
 
+describe("Gameboard: Receiving Attacks", () => {
+  let gb;
+  beforeEach(() => {
+    gb = new Gameboard();
+  });
 
+  it("Gameboards can receive attack via a *pair*, and only a pair, of coordinates.", ()=> {
+    expect(() => {
+      gb.receiveAttack(0);
+    }).toThrow("You must provide row and col coordinates.");
+  });
+
+  it("If a ship is detected where the hit lands, send the hit to the correct ship.", () => {
+    gb.placeShip(3, 0, 0, false);
+
+    
+
+    expect(gb.receiveAttack(0, 0)).toEqual(1);
+    expect(gb.getGrid()[0][0]).toEqual("x");
+  });
+
+  it("If a ship is not detected, record this on the gameboard as a miss.", () => {
+    gb.placeShip(3, 0, 0, false);
+    
+
+    expect(gb.receiveAttack(1, 5)).toEqual(0);
+    expect(gb.getGrid()[1][5]).toEqual("o"); 
+  });
+  
+  it("Do not allow the player to hit spots on the gameboard that have already been hit.", () => {
+    gb.placeShip(3, 0, 0, false);
+    
+    expect(gb.receiveAttack(1, 5)).toEqual(0);
+    expect(gb.receiveAttack(1, 5)).toEqual(-1);
+    expect(gb.receiveAttack(0, 0)).toEqual(1);
+    expect(gb.receiveAttack(0, 0)).toEqual(-1);
+  });
+
+})
