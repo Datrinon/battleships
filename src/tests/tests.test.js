@@ -1,7 +1,8 @@
 import Ship from "../js/ship";
+import Gameboard from "../js/gameboard";
 
 /**
- * A variety of tests for the Battleship app.
+ * Testing the fields and attributes of the ship class.
  */
 describe('Testing Ship class...', () => {
   let ship;
@@ -37,5 +38,43 @@ describe('Testing Ship class...', () => {
   });
 });
 
+describe("Testing Gameboard class...", () => {
+  let gb;
+  beforeEach(() => {
+    gb = new Gameboard();
+  });
+  // place ships at specific coordinates by calling ship constructor.
+  it("Ships can be placed on the gameboard",
+    () => {
+      gb.placeShip(2, 0, 0, false);
+      expect(gb.getGrid()[0]).toEqual(["2","2",'','','','','','','','']);
+    });
+
+    it("Ships can be placed vertically.",
+    () => {
+      gb.placeShip(2, 0, 0, true);
+
+      expect(gb.getGrid()[0]).toEqual(['2','','','','','','','','','']);
+      expect(gb.getGrid()[1]).toEqual(['2','','','','','','','','','']);
+    });
+
+    it("Ships which extend outside of the edge of the board cannot be placed.",
+    () => {
+      expect(gb.placeShip(5, 9, 9, false)).toBeNull();
+    });
+
+    it("Ships which extend outside of the edge of the board vertically cannot be placed.",
+    () => {
+      expect(gb.placeShip(5, 9, 9, false)).toBeNull();
+    });
+
+    it("Ships cannot be placed where another ship is currently present.",
+    () => {
+      gb.placeShip(2, 0, 0, true);
+
+      expect(gb.placeShip(2, 0, 0, false)).toBeNull();
+    });
+
+});
 
 

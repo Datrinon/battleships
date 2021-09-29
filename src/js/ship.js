@@ -10,7 +10,14 @@ export default class Ship {
    */
   status;
 
-
+  /**
+   * Create a ship.
+   * @param {Gameboard} gameboard - The gameboard the ship belongs to.
+   * @param {Number} length - The length of the ship.
+   * @param {Number} row - xCoordinate to place the ship. 0-based.
+   * @param {Number} col - yCoordinate to place the ship. 0-based.
+   * @param {boolean} vertical - Should the ship be placed vertically?
+   */
   constructor(length) {
     this.length = length ?? 1;
    
