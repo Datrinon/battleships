@@ -1,4 +1,25 @@
+function setName(length) {
+  switch(length) {
+    case 1:
+      return "Speeder";
+    case 2:
+      return "Patrol Boat";
+    case 3:
+      return "Destroyer";
+    case 4:
+      return "Battleship";
+    case 5:
+      return "Carrier";
+    default:
+      return "Ship";
+  }
+}
+
 export default class Ship {
+  /**
+   * The name of the battleship, depends on the length.
+   */
+  name; 
   /**
    * The length of the battleship.
    */
@@ -20,7 +41,8 @@ export default class Ship {
    */
   constructor(length) {
     this.length = length ?? 1;
-   
+    this.name = setName(this.length);
+
     this.status = {};
   }
 

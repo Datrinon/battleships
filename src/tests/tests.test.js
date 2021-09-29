@@ -1,5 +1,5 @@
-import Ship from "../js/ship";
 import Gameboard from "../js/gameboard";
+import Player from "../js/player";
 
 /**
  * Testing the fields and attributes of the ship class.
@@ -13,8 +13,13 @@ describe('Testing Ship class...', () => {
     ship = gb.placeShip(3, 0, 0, false);
   });
 
+  
   it("Ships have length", () => {
     expect(ship.length).not.toBeUndefined();
+  });
+
+  it("Ships have names, which are based on their length", () => {
+    expect(ship.name).toBe("Destroyer");
   });
   
   it("Ships have a status metric indicating if they've been hit.", () => {
@@ -126,5 +131,56 @@ describe("Gameboard: Receiving Attacks", () => {
 
     expect(gb.allShipsSunk()).toBe(true);
   });
-
 })
+
+describe("Player class", () => {
+  
+  let player;
+  let cpu;
+
+  beforeEach(() => {
+    player = new Player("Walton", false);
+    cpu = new Player("Borg", true);
+  });
+
+  it("Attribute check: Players can be named.", () => {
+    expect(player.name).not.toBeUndefined();
+    expect(player.name).toBe("Walton");
+  });
+
+  it("Attribute check: Players can be identified as CPU " + 
+     "and set as such on their constructor.", () => {
+    expect(player.cpu).toBe(false);
+    expect(cpu.cpu).toBe(true);
+  });
+
+  it("Attribute check: Players have scores " + 
+  "which can be checked.", () => {
+    expect(player.score).toBe(0);
+    expect(cpu.score).toBe(0);
+  });
+
+  it("Attribute check: Players have gameboards " + 
+  "which can be checked.", () => {
+    expect(player.gameboard).not.toBeUndefined();
+    expect(cpu.gameboard).not.toBeUndefined();
+  });
+
+  it("Players can attack each other and sink each other's ships.", () => {
+    // add cpu boats.
+    cpu.gameboard.placeShip(1, 0, 0, false);
+
+    player.attack(cpu, 0, 0);
+    expect(cpu.gameboard.allShipsSunk()).toBe(true);
+  });
+
+  it("Players can attack each other.", () => {
+    cpu.gameboard.placeShip(1, 0, 0, false);
+    expect(cpu.gameboard.allShipsSunk()).toBe(false);
+    // add cpu boats.
+
+    player.attack(cpu, 0, 0);
+    expect(cpu.gameboard.allShipsSunk()).toBe(true);
+  });
+
+});
