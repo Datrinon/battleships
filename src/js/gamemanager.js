@@ -10,7 +10,8 @@ export const GAME_STATE = {
   p1victory: "Player 1 wins.",
   p2victory: "Player 2 wins.",
   restart: "Restarting game...",
-  playing: "Game active."
+  playing: "Game active.",
+  gamePrompt: "Welcome. Drag ships onto gameboard. Click (when placed): Rotate."
 };
 
 

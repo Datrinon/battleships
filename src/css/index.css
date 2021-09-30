@@ -1,3 +1,8 @@
+.game-area {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
 .gameboard-area {
   display: flex;
   flex-direction: row;
@@ -10,6 +15,7 @@
   border: 1px solid black;
   display: inline-block;
 }
+
 /* This pseudo element helps keep the cells aligned together */
 /* Empty divs act strangely, so put content in them.  */
 /* Delete it and then run this in console to see that */
@@ -17,4 +23,22 @@
 .cell::after {
   content: '.';
   visibility: hidden;
+}
+
+.selectable:hover {
+  background-color: rgb(222, 238, 252)
+}
+
+.ship-placer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.placeable {
+  cursor: pointer;
+}
+
+.placeable:hover {
+  background-color: blue;
 }

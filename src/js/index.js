@@ -3,6 +3,7 @@ import component from "./component";
 import Utility from "./utility";
 import Ship from "./ship";
 import Gameboard from "./gameboard";
+import {GAME_STATE} from "./gamemanager";
 import GameManager from "./gamemanager";
 import Player from "./player";
 
@@ -12,9 +13,11 @@ import "../css/index.css";
 
 
 /**
- * Creates elements for the web app.
+ * Creates elements for Battleship.
  */
 class ElementProvider {
+
+  dialog;
 
   constructor(gameManager) {
     this.gameManager = gameManager;
@@ -35,7 +38,9 @@ class ElementProvider {
     const gameboardContainer = component.div("gameboard-area");
     const controlDialogContainer = component.div("controls-area"); 
   
-    gameboardContainer.append(this.#gameboard("p1"), this.#gameboard("p2"));
+    gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2"));
+
+    controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
     
     gameContainer.append(gameboardContainer,controlDialogContainer);
   
@@ -46,9 +51,10 @@ class ElementProvider {
    * Generates a clickable grid based on the game manager's gameboard size.
    * @param {string} playerName : the name of the player; used as a class name to 
    * identify the gameboard.
+   * @param {string} className : Additional class names to identify the gameboard by.
    */
-  #gameboard(playerName) {
-    const gameboard = component.div("gameboard", playerName);
+  #gameboard(playerName, className) {
+    const gameboard = component.div("gameboard", className);
 
     const gridSize = this.gameManager.players[0].gameboard.size;
     for (let i = 0; i < gridSize; i++) {
@@ -80,10 +86,50 @@ class ElementProvider {
 
     gameboard.prepend(rowHeader);
 
+    // Apply headers for the gameboard
+    gameboard.prepend(component.heading(playerName, 2, "gameboard-possessor"));
 
     return gameboard;
   }
   
+  /**
+   * Generates a dialog message, which is used to 
+   * give the user directions on each phase of the game.
+   */
+  #dialog() {
+    let dialogContainer = component.div("dialog");
+    let dialogMsg = component.p("Welcome.", "dialog-msg");
+    dialogContainer.append(dialogMsg);
+
+    this.dialog = dialogContainer;
+
+    return dialogContainer;
+  }
+
+  setDialog(message) {
+    this.dialog.querySelector(".dialog-msg").textContent = message;
+  }
+
+  /**
+   * Generates ships and lets them be dragged.
+   */
+  #shipPlacement() {
+    let shipInventory = component.div("ship-placer");
+
+    component.heading("Select Ship", 3);
+
+    this.gameManager.shipLengths.forEach(shipLen => {
+      let ship = component.div("ship", "placeable");
+      for (let i = 0; i < shipLen; i++) {
+        let cell = component.div("cell");
+        ship.append(cell);
+      }
+
+      shipInventory.append(ship);
+    })
+
+    return shipInventory;
+  }
 }
 
 
@@ -98,6 +144,8 @@ class ElementProvider {
 
   const header = page.header();
   const gameArea = page.gameArea();
+
+  page.setDialog(GAME_STATE.gamePrompt);
 
   body.append(header, gameArea);
 })();
