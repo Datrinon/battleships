@@ -140,18 +140,44 @@ class ElementProvider {
   }
 
   #enableDragging() {
+    let currentDraggedLength;
+
     window.addEventListener("dragstart", (e) => {
       e.dataTransfer.dropEffect = "move";
       e.dataTransfer.setData("text/plain", e.target.id);
+      currentDraggedLength = e.target.childElementCount;
     });
 
 
-    this.#gameContainer.querySelectorAll(".p1.gameboard .row").forEach(row => {
+    this.#gameContainer.querySelectorAll(".p1.gameboard .row .selectable").forEach(row => {
+
       console.log(row);
       // need to implement this for a drop zone -- prevent default of not allowing drop zone.
       row.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
+        let hoverCell = e.target;
+        let cells = Array.from(hoverCell.parentNode.children);
+        let index = cells.indexOf(hoverCell);
+
+        // console.log(index);
+
+        if (index + currentDraggedLength <= cells.length) {
+          for (let i = index; i < index + currentDraggedLength; i++) {
+            cells[i].classList.add("valid-drag");
+          }
+          
+          // add hover to the remaining pieces.
+        }
+
+        // console.log(currentDraggedLength);
+      })
+
+      row.addEventListener("dragleave", () => {
+        document.querySelectorAll(".p1.gameboard .selectable")
+            .forEach(cell => {
+              cell.classList.remove("valid-drag");
+            });
       })
 
       row.addEventListener("drop", (e) => {
