@@ -29,16 +29,21 @@
   background-color: rgb(222, 238, 252)
 }
 
-.ship-placer {
+.ship-selection {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-around;
 }
 
-.placeable {
-  cursor: pointer;
+.ship.draggable {
+  width:fit-content;
+  background-color: cyan;
 }
 
-.placeable:hover {
+.draggable {
+  cursor: move;
+}
+
+.draggable:hover {
   background-color: blue;
 }

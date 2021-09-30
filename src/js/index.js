@@ -17,7 +17,8 @@ import "../css/index.css";
  */
 class ElementProvider {
 
-  dialog;
+  #dialogHolder;
+  #gameContainer;
 
   constructor(gameManager) {
     this.gameManager = gameManager;
@@ -34,17 +35,18 @@ class ElementProvider {
   }
 
   gameArea() {
-    const gameContainer = component.div("game-area");
+    this.#gameContainer = component.div("game-area");
     const gameboardContainer = component.div("gameboard-area");
     const controlDialogContainer = component.div("controls-area"); 
-  
+    
+    this.#gameContainer.append(gameboardContainer,controlDialogContainer);
+
     gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2"));
 
     controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
     
-    gameContainer.append(gameboardContainer,controlDialogContainer);
   
-    return gameContainer;
+    return this.#gameContainer;
   }
 
   /**
@@ -58,7 +60,7 @@ class ElementProvider {
 
     const gridSize = this.gameManager.players[0].gameboard.size;
     for (let i = 0; i < gridSize; i++) {
-      let row = component.div(`row-${i}`);
+      let row = component.div("row", `row-${i}`);
       for (let j = 0; j < gridSize; j++ ) {
         let col = component.div("cell", "selectable");
         col.dataset.row = i;
@@ -101,13 +103,13 @@ class ElementProvider {
     let dialogMsg = component.p("Welcome.", "dialog-msg");
     dialogContainer.append(dialogMsg);
 
-    this.dialog = dialogContainer;
+    this.#dialogHolder = dialogContainer;
 
     return dialogContainer;
   }
 
   setDialog(message) {
-    this.dialog.querySelector(".dialog-msg").textContent = message;
+    this.#dialogHolder.querySelector(".dialog-msg").textContent = message;
   }
 
   /**
@@ -116,19 +118,52 @@ class ElementProvider {
   #shipPlacement() {
     let shipInventory = component.div("ship-placer");
 
-    component.heading("Select Ship", 3);
+    let header = component.heading("Select Ship", 3);
+    let selection = component.div("ship-selection");
 
-    this.gameManager.shipLengths.forEach(shipLen => {
-      let ship = component.div("ship", "placeable");
+    this.gameManager.shipLengths.forEach((shipLen, index) => {
+      let ship = component.div("ship", "draggable");
+      ship.id = `player-ship${index}`;
+      ship.setAttribute("draggable", "true");
       for (let i = 0; i < shipLen; i++) {
         let cell = component.div("cell");
         ship.append(cell);
       }
 
-      shipInventory.append(ship);
+      selection.append(ship);
     })
 
+    this.#enableDragging();
+    shipInventory.append(header, selection);
+
     return shipInventory;
+  }
+
+  #enableDragging() {
+    window.addEventListener("dragstart", (e) => {
+      e.dataTransfer.dropEffect = "move";
+      e.dataTransfer.setData("text/plain", e.target.id);
+    });
+
+
+    this.#gameContainer.querySelectorAll(".p1.gameboard .row").forEach(row => {
+      console.log(row);
+      // need to implement this for a drop zone -- prevent default of not allowing drop zone.
+      row.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      })
+
+      row.addEventListener("drop", (e) => {
+        e.preventDefault();
+        console.log(e.target);
+        const id = e.dataTransfer.getData("text/plain");
+        console.log(id);
+        e.target.append(document.querySelector(`#${id}`));
+      });
+
+
+    });
   }
 }
 
