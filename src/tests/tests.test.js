@@ -1,3 +1,4 @@
+import GameManager from "../js/gamemanager";
 import Gameboard from "../js/gameboard";
 import Player from "../js/player";
 
@@ -167,20 +168,42 @@ describe("Player class", () => {
   });
 
   it("Players can attack each other and sink each other's ships.", () => {
-    // add cpu boats.
-    cpu.gameboard.placeShip(1, 0, 0, false);
-
-    player.attack(cpu, 0, 0);
-    expect(cpu.gameboard.allShipsSunk()).toBe(true);
-  });
-
-  it("Players can attack each other.", () => {
     cpu.gameboard.placeShip(1, 0, 0, false);
     expect(cpu.gameboard.allShipsSunk()).toBe(false);
-    // add cpu boats.
 
     player.attack(cpu, 0, 0);
     expect(cpu.gameboard.allShipsSunk()).toBe(true);
   });
 
+});
+
+describe("GameManager Class", () => {
+  let game;
+  let p1;
+  let p2;
+  
+  it("Can instantiate with the players provided as an argument for tracking.", () => {
+    p1 = new Player("Wally", false);
+    p2 = new Player("Edgar", true);
+    
+    game = new GameManager([p1, p2]);
+
+    expect(game.players.length).toBe(2);
+  })
+
+
+  it("Is a singleton.", () => {
+    let game2 = new GameManager();
+    expect(game2.players.length).toBe(2);
+  });
+
+  
+  it("when started, with a CPU player, pick random " + 
+     "locations for the bot to place ships.", () => {
+      game.startGame();
+      expect(game.players[1].gameboard.ships.length).toBe(5);
+  });
+
+  // it("will start a game when its called.", () => {
+  // });
 });

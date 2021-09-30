@@ -1,23 +1,23 @@
 import Ship from "./ship";
 
 export default class Gameboard {
-  
+
   grid;
   size;
   ships;
 
   constructor() {
-      this.size = 10;
-      this.grid = [];
-      this.ships = [];
-      
-      for (let i = 0; i < this.size; i++) {
-        this.grid[i] = [];
-        for (let j = 0; j < this.size; j++) {
-          this.grid[i].push("");
-        }
+    this.size = 10;
+    this.grid = [];
+    this.ships = [];
+
+    for (let i = 0; i < this.size; i++) {
+      this.grid[i] = [];
+      for (let j = 0; j < this.size; j++) {
+        this.grid[i][j] = "";
       }
     }
+  }
 
   /**
    * Creates and places a given ship based on the coordinates
@@ -30,6 +30,12 @@ export default class Gameboard {
    * to be placed.
    */
   placeShip(length, row, col, vertical) {
+    // return null if out of bounds
+    if (row + length > this.grid.length
+      || col + length > this.grid.length
+    ) {
+      return null;
+    }
     // check to see that the given row and col + length are not already occupied.
     if (vertical) {
       for (let i = row; i < (row + length); i++) {
@@ -43,12 +49,6 @@ export default class Gameboard {
           return null;
         }
       }
-    }
-    // return null if out of bounds
-    if (row + length > this.grid.length
-        || col + length > this.grid.length
-    ) {
-      return null;
     }
 
     // otherwise we're good to place a ship.
