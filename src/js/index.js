@@ -151,8 +151,6 @@ class ElementProvider {
 
     this.#gameContainer.querySelectorAll(".p1.gameboard .row .selectable").forEach(row => {
 
-      console.log(row);
-      // need to implement this for a drop zone -- prevent default of not allowing drop zone.
       row.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
@@ -160,32 +158,29 @@ class ElementProvider {
         let cells = Array.from(hoverCell.parentNode.children);
         let index = cells.indexOf(hoverCell);
 
-        // console.log(index);
-
         if (index + currentDraggedLength <= cells.length) {
           for (let i = index; i < index + currentDraggedLength; i++) {
             cells[i].classList.add("valid-drag");
           }
-          
-          // add hover to the remaining pieces.
         }
-
-        // console.log(currentDraggedLength);
-      })
+      });
 
       row.addEventListener("dragleave", () => {
         document.querySelectorAll(".p1.gameboard .selectable")
             .forEach(cell => {
               cell.classList.remove("valid-drag");
             });
-      })
+      });
 
       row.addEventListener("drop", (e) => {
-        e.preventDefault();
-        console.log(e.target);
-        const id = e.dataTransfer.getData("text/plain");
-        console.log(id);
-        e.target.append(document.querySelector(`#${id}`));
+        // only when the area is a valid-drag do we add it in. otherwise, nope.
+        if (e.target.classList.contains("valid-drag")) {
+          e.preventDefault();
+          console.log(e.target);
+          const id = e.dataTransfer.getData("text/plain");
+          console.log(id);
+          e.target.append(document.querySelector(`#${id}`));
+        }
       });
 
 
