@@ -18,6 +18,9 @@ export default class GameManager {
   
   static #instance;
 
+  /**
+   * The players involved in the game.
+   */
   players;
 
   /**
@@ -26,19 +29,26 @@ export default class GameManager {
   p1turn;
 
   /**
+   * An array of the lengths of each ship that the player will have in their arsenal.
+   * @type {number[]}
+   */
+  shipLengths;
+
+  /**
    * Create an instance of the game.
    * @param {Player[]} players - An array of the players in the game.
-   * @param {boolean} p1Start - Should player 1 start? True by default.
+   * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(players, p1turn = true) {
+  constructor(players, p1start = true, shipLengths = [2, 3, 3, 4, 5]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
 
     GameManager.#instance = this;
     this.players = players;
-    this.p1turn = p1turn;
+    this.p1turn = p1start;
+    this.shipLengths = shipLengths;
   }
 
   /**
@@ -50,20 +60,16 @@ export default class GameManager {
         this.#cpuPlaceShips(player);
       }
     });
-    // TODO leave this for later since I don't know exactly 
-    // how to start it. 
-    // We'll work on this on the view.
-    // My conception is that startGame which launch CPU actions.
   }
 
   #cpuPlaceShips(player) {
-    // TODO move shipLengths out as a feild.
-    // if you do, consider moving startGame out of the cosntructor...
-    const shipLengths = [2, 3, 3, 4, 5];
-    shipLengths.forEach(length => {
+    this.shipLengths.forEach(length => {
       let status = null;
 
       while (status === null) {
+        // TODO
+        // when testing the game phase, override row and col to be 0, 0 to test
+        // victory phase.
         let row = Math.round(Math.random() * (player.gameboard.size-1));
         let col = Math.round(Math.random() * (player.gameboard.size-1));
         let vertical = Math.round(Math.random());

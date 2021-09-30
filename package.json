@@ -9,8 +9,7 @@
     "start": "webpack serve --open",
     "server": "node server.js",
     "build": "webpack",
-    "lint": "eslint ./",
-    "jestwatch": "webpack --watch; jest --watch '*.js'"
+    "lint": "eslint ./"
   },
   "author": "dht",
   "license": "ISC",
