@@ -1,3 +1,5 @@
+import { BattleshipElements } from "./index";
+
 /**
  * Manages a game session for battleship. Keeps track of players.
  * Can start, end, and reset the game.
@@ -64,7 +66,7 @@ export default class GameManager {
   }
 
   #cpuPlaceShips(player) {
-    this.shipLengths.forEach(length => {
+    this.shipLengths.forEach((length, index) => {
       let status = null;
 
       while (status === null) {
@@ -75,6 +77,8 @@ export default class GameManager {
         let col = Math.round(Math.random() * (player.gameboard.size-1));
         let vertical = Math.round(Math.random());
         status = player.gameboard.placeShip(length, row, col, vertical);
+
+        BattleshipElements.placeShipManually(length, row, col, vertical, true, `cpu-ship${index}`);
       }
     });
   }

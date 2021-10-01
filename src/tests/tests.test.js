@@ -201,6 +201,9 @@ describe("GameManager Class", () => {
   it("when started, with a CPU player, pick random " + 
      "locations for the bot to place ships.", () => {
       game.startGame();
+
+      console.log(game.players[1].gameboard.ships);
+
       expect(game.players[1].gameboard.ships.length).toBe(5);
   });
 

@@ -15,7 +15,7 @@ import "../css/index.css";
 /**
  * Creates elements for Battleship.
  */
-class ElementProvider {
+export class BattleshipElements {
 
   #dialogHolder;
   #gameContainer;
@@ -46,7 +46,7 @@ class ElementProvider {
 
     controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
 
-    this.#enableDragging();
+    this.#enableDraggingAndRotation();
 
     return this.#gameContainer;
   }
@@ -114,7 +114,7 @@ class ElementProvider {
   }
 
   /**
-   * Generates ships and lets them be dragged.
+   * Generates an inventory of ships and lets them be dragged by the player.
    */
   #shipPlacement() {
     let shipInventory = component.div("ship-placer");
@@ -139,7 +139,10 @@ class ElementProvider {
     return shipInventory;
   }
 
-  #enableDragging() {
+  /**
+   * Contains a collection of callbacks to enable drag 'n' drop on the gameboard with rotation.
+   */
+  #enableDraggingAndRotation() {
     const removeDragGuide = () => {
       document.querySelectorAll(".p1.gameboard .selectable")
         .forEach(cell => {
@@ -399,6 +402,53 @@ class ElementProvider {
     });
 
   }
+
+  /**
+   * Places ships on the gameboard given coordinates. Useful for AI.
+   * 
+   * @param {number} length 
+   * @param {number} row 
+   * @param {number} col 
+   * @param {boolean} vertical 
+   * @param {boolean} player2 - Place ships on player 2's gameboard?
+   * @param {string} id - the ID the ship should be identified by.
+   */
+  static placeShipManually(length, row, col, vertical, player2 = true, id) {
+    console.log({length, row, col, vertical, player2, id});
+    let selector;
+    let gameboard; 
+    let cpuTag = "cpu-ship-placed";
+
+    if (player2) {
+      selector = ".p2.gameboard"
+    } else {
+      selector = ".p1.gameboard"
+    }
+
+    gameboard = document.querySelector(`${selector}`);
+
+    let originCell = gameboard.querySelector(`.selectable[data-row='${row}'][data-col='${col}']`);
+    originCell.dataset.ship = id;
+
+
+    if (vertical) {
+      let rows = Array.from(gameboard.querySelectorAll(`.selectable[data-row="${row}"]`));
+
+      for (let i = row; i < row + length; i++) {
+        rows[i].classList.add("occupied", cpuTag);
+        rows[i].dataset.ship = id;
+      }
+    } else {
+      let cols = Array.from(gameboard.querySelectorAll(`.selectable[data-col="${col}"]`));
+      
+      for (let i = col; i < col + length; i++) {
+        cols[i].classList.add("occupied", cpuTag);
+        cols[i].dataset.ship = id;
+      }
+    }
+
+
+  }
 }
 
 
@@ -409,7 +459,7 @@ class ElementProvider {
   const p2 = new Player("Commander Red", true);
 
   const game = new GameManager([p1, p2]);
-  const page = new ElementProvider(game);
+  const page = new BattleshipElements(game);
 
   const header = page.header();
   const gameArea = page.gameArea();
@@ -417,6 +467,8 @@ class ElementProvider {
   page.setDialog(GAME_STATE.gamePrompt);
 
   body.append(header, gameArea);
+  
+  game.startGame();
 })();
 
 /*
