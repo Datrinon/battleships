@@ -19,6 +19,7 @@ class ElementProvider {
 
   #dialogHolder;
   #gameContainer;
+  gameManager;
 
   constructor(gameManager) {
     this.gameManager = gameManager;
@@ -146,12 +147,67 @@ class ElementProvider {
       });
     }
 
+    // enables ship rotation; to be called each time a ship is placed.
+    const allowPlacedShipRotation = () => {
+      let gridSize = this.gameManager.players[0].gameboard.length;
+      // allow rotation of placed ships
+      document.querySelectorAll(".ship.draggable.ship-placed").forEach(ship => {
+        if (ship.onclick === null) {
+          ship.onclick = () => {
+            let cell = ship.parentNode;
+            let shipLength = ship.childElementCount;
+            console.log(shipLength);
+
+            let rowIndex = parseInt(cell.dataset.row);
+            let colIndex = parseInt(cell.dataset.col);
+
+            if (rowIndex + shipLength > gridSize) {
+              return;
+            }
+
+            if (colIndex + shipLength > gridSize) {
+              return;
+            }
+            
+            // check if any ships are in the way of the rotation.
+            for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
+              let cells = Array.from(document
+                  .querySelectorAll(`.p1.gameboard [data-row="${i}"]`));
+
+              for (let j = colIndex; j < colIndex + shipLength; j++) {
+                console.log(colIndex + shipLength);
+
+                if (cells[j].classList.contains("occupied")) {
+                  // do not proceed.
+                  return;
+                }
+              }
+            }
+                      
+            // make sure there's enough space to move it vertically, based on the ship length.
+            // 1 no ships in the way
+            // 2.within the bounds of the gameboard.
+            // only then do you allow vertical class.
+            console.log(cell);
+
+            ship.classList.toggle("vertical");
+          };
+        }
+      }); 
+
+      // disable rotation for ships that are not placed.
+      document.querySelectorAll(".ship.draggable:not(.ship-placed)").forEach(ship => {
+        if (ship.onclick !== null) {
+          ship.onclick = null;
+        }
+      }); 
+
+    }
+
     let currentDraggedLength;
 
     this.#gameContainer.querySelectorAll(".draggable").forEach(ship => {
       ship.addEventListener("dragstart", (e) => {
-        console.log("Dragging...")
-        console.log(e.target);
         e.dataTransfer.dropEffect = "move";
         e.dataTransfer.setData("text/plain", e.target.id);
   
@@ -161,8 +217,6 @@ class ElementProvider {
         e.dataTransfer.setDragImage(img, 0, 0);
       });
     });
-
-
 
     // all cells that are selectable are droppable areas.
     this.#gameContainer.querySelectorAll(".p1.gameboard .selectable").forEach(cell => {
@@ -238,6 +292,8 @@ class ElementProvider {
             cells[i].dataset.ship = id;
           }
 
+          // allow the ship to be rotated.
+          allowPlacedShipRotation();
         }
       });
 
@@ -249,13 +305,12 @@ class ElementProvider {
       this.#gameContainer.querySelector(".ship-placer")
           .addEventListener("drop", (e) => {
         
-            e.preventDefault();
+          e.preventDefault();
 
-            const id = e.dataTransfer.getData("text/plain");
-            document.querySelector(`#${id}`).classList.remove("ship-placed");
-            e.target.append();
-          });
-
+          const id = e.dataTransfer.getData("text/plain");
+          document.querySelector(`#${id}`).classList.remove("ship-placed");
+          e.target.append();
+      });
     });
   }
 }
