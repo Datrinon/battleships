@@ -1,3 +1,7 @@
+.no-display {
+  display: none !important;
+}
+
 .game-area {
   max-width: 900px;
   margin: 0 auto;
@@ -20,6 +24,7 @@
   height: 24px;
   border: 1px solid black;
   display: inline-block;
+  user-select: none;
 }
 
 /* This pseudo element helps keep the cells aligned together */

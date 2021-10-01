@@ -148,28 +148,26 @@ class ElementProvider {
     }
 
     // enables ship rotation; to be called each time a ship is placed.
+    let self = this;
     const allowPlacedShipRotation = () => {
-      let gridSize = this.gameManager.players[0].gameboard.length;
+      let gridSize = self.gameManager.players[0].gameboard.grid.length;
       // allow rotation of placed ships
       document.querySelectorAll(".ship.draggable.ship-placed").forEach(ship => {
         if (ship.onclick === null) {
           ship.onclick = () => {
+            let verticalOn = ship.classList.contains("vertical");
             let cell = ship.parentNode;
             let shipLength = ship.childElementCount;
 
             let rowIndex = parseInt(cell.dataset.row);
             let colIndex = parseInt(cell.dataset.col);
 
-            if (rowIndex + shipLength > gridSize) {
-              console.log("ret early")
+            console.log({rowIndex, shipLength, gridSize});
+            
+            if (rowIndex + shipLength > gridSize || colIndex + shipLength > gridSize) {
               return;
             }
 
-            if (colIndex + shipLength > gridSize) {
-              console.log("ret early")
-              return;
-            }
-            
             // check if any ships are in the way of the rotation.
             for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
               
@@ -179,7 +177,6 @@ class ElementProvider {
               for (let j = colIndex; j < colIndex + shipLength; j++) {
                 if (cells[j].classList.contains("occupied") && cells[j].dataset.ship !== ship.id) {
                   // do not proceed.
-                  console.log("ret early")
                   return;
                 }
               }
@@ -191,7 +188,7 @@ class ElementProvider {
             // only then do you allow vertical class.
             console.log(cell);
 
-            if (ship.classList.contains("vertical")) {
+            if (verticalOn) {
               // vertical -> horizontal occupied
               for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
                 let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${i}"][data-col="${colIndex}"]`);
@@ -241,6 +238,7 @@ class ElementProvider {
     }
 
     let currentDraggedLength;
+    let currentDraggedShipId;
 
     this.#gameContainer.querySelectorAll(".draggable").forEach(ship => {
       ship.addEventListener("dragstart", (e) => {
@@ -248,6 +246,7 @@ class ElementProvider {
         e.dataTransfer.setData("text/plain", e.target.id);
   
         currentDraggedLength = e.target.childElementCount;
+        currentDraggedShipId = e.target.id ?? e.target.dataset.ship;
         // blank image
         let img = new Image();
         e.dataTransfer.setDragImage(img, 0, 0);
@@ -257,27 +256,55 @@ class ElementProvider {
     // all cells that are selectable are droppable areas.
     this.#gameContainer.querySelectorAll(".p1.gameboard .selectable").forEach(cell => {
 
-      // when dragging over, show valid-drag if there's sufficient space.
-      // TODO do not allow "valid-drag" for occupied cells. How to indicate occupied cells?
       cell.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
-        let hoverCell = e.target;
-        let row = hoverCell.getAttribute("data-row");
-        
-        let cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
-        let index = cells.indexOf(hoverCell);
+        let hoverCell = Utility.getMatchingParent(e.target, ".selectable");
 
-        if (index + currentDraggedLength <= cells.length) {
-          for (let i = index; i < index + currentDraggedLength; i++) {
-            // not a valid placement.
-            if (cells[i].classList.contains("occupied")) {
-              removeDragGuide();
-              return;
+        document.querySelector(`#${currentDraggedShipId}`).classList.add("no-display");
+        
+        if (document.querySelector(`#${currentDraggedShipId}`).classList.contains("vertical")) {
+          // apply vertical guide.
+          let col = hoverCell.dataset.col;
+          let cellsCol = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
+          let index = cellsCol.indexOf(hoverCell);
+
+          if (index + currentDraggedLength <= cellsCol.length) {
+            for (let i = index; i < index + currentDraggedLength; i++) {
+              // not a valid placement.
+              if (cellsCol[i].classList.contains("occupied")
+              && cellsCol[i].dataset.ship !== currentDraggedShipId) {
+                removeDragGuide();
+                return;
+              }
+              cellsCol[i].classList.add("valid-drag");
             }
-            cells[i].classList.add("valid-drag");
+          }
+        } else { 
+          // apply horizontal guide
+          let row = hoverCell.dataset.row;
+          let cellsRow = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+          let index = cellsRow.indexOf(hoverCell);
+
+          console.log("hovering over index: " + index);
+
+          if (index + currentDraggedLength <= cellsRow.length) {
+            for (let i = index; i < index + currentDraggedLength; i++) {
+              // not a valid placement.
+              if (cellsRow[i].classList.contains("occupied")
+              && cellsRow[i].dataset.ship !== currentDraggedShipId) {
+                console.log("Firah!");
+                removeDragGuide();
+                return;
+              }
+
+              cellsRow[i].classList.add("valid-drag");
+              // console.log({index, currentDraggedLength, i});
+            }
           }
         }
+
+
       });
 
       // when the drag element leaves droppable zone, remove all valid drag
@@ -285,6 +312,7 @@ class ElementProvider {
       cell.addEventListener("dragleave", removeDragGuide);
 
       cell.addEventListener("drop", (e) => {
+        document.querySelector(`#${currentDraggedShipId}`).classList.remove("no-display");
         // only when the area is a valid-drag do we add it in. otherwise, nope.
         if (e.target.classList.contains("valid-drag")) {
           e.preventDefault();
@@ -292,17 +320,29 @@ class ElementProvider {
 
           const id = e.dataTransfer.getData("text/plain");
 
-          // before moving the ship, determine if it has been placed already...
-          let lastPlacedLocation = document.querySelector(`.selectable #${id}`)
+          // before moving the ship, determine if it has been placed already... 
+          // this is true if the ship is inside a selectable cell.
+          let lastPlacedLocation = document.querySelector(`.selectable #${id}`);
           
+          // if so we need to remove occupied from such cells.
           if(lastPlacedLocation !== null) {
-            lastPlacedLocation = lastPlacedLocation.parentNode;
-            // remove occupied marking from those cells.
-            let row = lastPlacedLocation.getAttribute("data-row");
-            let cells = Array.from(document
-              .querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
-            let index = cells.indexOf(lastPlacedLocation);
+            let cells;
+            let vertical = lastPlacedLocation.classList.contains("vertical");
 
+            // parentNode is the cell.
+            lastPlacedLocation = lastPlacedLocation.parentNode;
+            
+            if (vertical) {
+              let col = lastPlacedLocation.dataset.col;
+              cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
+            } else {
+              // remove occupied marking from those cells.
+              let row = lastPlacedLocation.dataset.row;
+              cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+            }
+            
+            let index = cells.indexOf(lastPlacedLocation);
+            
             // color the subsequent cells.
             for (let i = index; i < index + currentDraggedLength; i++) {
               cells[i].classList.remove("occupied");
@@ -315,11 +355,18 @@ class ElementProvider {
           document.querySelector(`#${id}`).classList.add("ship-placed");
           placedCell.append(document.querySelector(`#${id}`));
 
-          // get the row, index, and place thereafter of the placed cell.
-          let row = placedCell.getAttribute("data-row");
+          let vertical = document.querySelector(`#${id}`).classList.contains("vertical");
+          let cells;
 
-          let cells = Array.from(document
-                .querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+          if (vertical) {
+            let col = placedCell.dataset.col;
+            cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
+          } else {
+            // get the row, index, and place thereafter of the placed cell.
+            let row = placedCell.dataset.row; 
+            cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+          }
+
           let index = cells.indexOf(placedCell);
 
           // color the subsequent cells.
@@ -333,6 +380,7 @@ class ElementProvider {
         }
       });
 
+      // code to return ship to inventory
       this.#gameContainer.querySelector(".ship-placer")
           .addEventListener("dragover", (e) => {
             e.preventDefault();
