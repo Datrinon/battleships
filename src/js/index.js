@@ -147,22 +147,28 @@ class ElementProvider {
 
     let currentDraggedLength;
 
-    window.addEventListener("dragstart", (e) => {
-      e.dataTransfer.dropEffect = "move";
-      e.dataTransfer.setData("text/plain", e.target.id);
-
-      currentDraggedLength = e.target.childElementCount;
-      // blank image
-      let img = new Image();
-      e.dataTransfer.setDragImage(img, 0, 0);
+    this.#gameContainer.querySelectorAll(".draggable").forEach(ship => {
+      ship.addEventListener("dragstart", (e) => {
+        console.log("Dragging...")
+        console.log(e.target);
+        e.dataTransfer.dropEffect = "move";
+        e.dataTransfer.setData("text/plain", e.target.id);
+  
+        currentDraggedLength = e.target.childElementCount;
+        // blank image
+        let img = new Image();
+        e.dataTransfer.setDragImage(img, 0, 0);
+      });
     });
 
+
+
     // all cells that are selectable are droppable areas.
-    this.#gameContainer.querySelectorAll(".p1.gameboard .selectable").forEach(row => {
+    this.#gameContainer.querySelectorAll(".p1.gameboard .selectable").forEach(cell => {
 
       // when dragging over, show valid-drag if there's sufficient space.
       // TODO do not allow "valid-drag" for occupied cells. How to indicate occupied cells?
-      row.addEventListener("dragover", (e) => {
+      cell.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
         let hoverCell = e.target;
@@ -173,6 +179,11 @@ class ElementProvider {
 
         if (index + currentDraggedLength <= cells.length) {
           for (let i = index; i < index + currentDraggedLength; i++) {
+            // not a valid placement.
+            if (cells[i].classList.contains("occupied")) {
+              removeDragGuide();
+              return;
+            }
             cells[i].classList.add("valid-drag");
           }
         }
@@ -180,26 +191,43 @@ class ElementProvider {
 
       // when the drag element leaves droppable zone, remove all valid drag
       // it'll just be recreated by valid-drag.
-      row.addEventListener("dragleave", removeDragGuide);
+      cell.addEventListener("dragleave", removeDragGuide);
 
-      row.addEventListener("drop", (e) => {
+      cell.addEventListener("drop", (e) => {
         // only when the area is a valid-drag do we add it in. otherwise, nope.
         if (e.target.classList.contains("valid-drag")) {
           e.preventDefault();
+          removeDragGuide();
 
           const id = e.dataTransfer.getData("text/plain");
 
-          removeDragGuide();
+          // before moving the ship, determine if it has been placed already...
+          let lastPlacedLocation = document.querySelector(`.selectable #${id}`)
+          
+          if(lastPlacedLocation !== null) {
+            lastPlacedLocation = lastPlacedLocation.parentNode;
+            // remove occupied marking from those cells.
+            let row = lastPlacedLocation.getAttribute("data-row");
+            let cells = Array.from(document
+              .querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+            let index = cells.indexOf(lastPlacedLocation);
 
+            // color the subsequent cells.
+            for (let i = index; i < index + currentDraggedLength; i++) {
+              cells[i].classList.remove("occupied");
+            }
+          }
+              
           let placedCell = e.target;
-          // add the ship to an origin cell, but hide it from view.
+          // move the ship
           document.querySelector(`#${id}`).classList.add("ship-placed");
           placedCell.append(document.querySelector(`#${id}`));
 
           // get the row, index, and place thereafter of the placed cell.
           let row = placedCell.getAttribute("data-row");
 
-          let cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+          let cells = Array.from(document
+                .querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
           let index = cells.indexOf(placedCell);
 
           // color the subsequent cells.
