@@ -138,25 +138,37 @@ class ElementProvider {
   }
 
   #enableDragging() {
+    const removeDragGuide = () => {
+      document.querySelectorAll(".p1.gameboard .selectable")
+      .forEach(cell => {
+        cell.classList.remove("valid-drag");
+      });
+    }
+
     let currentDraggedLength;
-    let foo_id;
 
     window.addEventListener("dragstart", (e) => {
       e.dataTransfer.dropEffect = "move";
       e.dataTransfer.setData("text/plain", e.target.id);
+
       currentDraggedLength = e.target.childElementCount;
+      // blank image
       let img = new Image();
       e.dataTransfer.setDragImage(img, 0, 0);
     });
 
+    // all cells that are selectable are droppable areas.
+    this.#gameContainer.querySelectorAll(".p1.gameboard .selectable").forEach(row => {
 
-    this.#gameContainer.querySelectorAll(".p1.gameboard .row .selectable").forEach(row => {
-
+      // when dragging over, show valid-drag if there's sufficient space.
+      // TODO do not allow "valid-drag" for occupied cells. How to indicate occupied cells?
       row.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
         let hoverCell = e.target;
-        let cells = Array.from(hoverCell.parentNode.children);
+        let row = hoverCell.getAttribute("data-row");
+        
+        let cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
         let index = cells.indexOf(hoverCell);
 
         if (index + currentDraggedLength <= cells.length) {
@@ -166,12 +178,9 @@ class ElementProvider {
         }
       });
 
-      row.addEventListener("dragleave", () => {
-        document.querySelectorAll(".p1.gameboard .cell")
-            .forEach(cell => {
-              cell.classList.remove("valid-drag");
-            });
-      });
+      // when the drag element leaves droppable zone, remove all valid drag
+      // it'll just be recreated by valid-drag.
+      row.addEventListener("dragleave", removeDragGuide);
 
       row.addEventListener("drop", (e) => {
         // only when the area is a valid-drag do we add it in. otherwise, nope.
@@ -179,34 +188,42 @@ class ElementProvider {
           e.preventDefault();
 
           const id = e.dataTransfer.getData("text/plain");
-          foo_id = id;
 
-          document.querySelectorAll(".p1.gameboard .cell")
-          .forEach(cell => {
-            cell.classList.remove("valid-drag");
-          });
+          removeDragGuide();
 
+          let placedCell = e.target;
+          // add the ship to an origin cell, but hide it from view.
           document.querySelector(`#${id}`).classList.add("ship-placed");
+          placedCell.append(document.querySelector(`#${id}`));
 
-          e.target.append(document.querySelector(`#${id}`));
+          // get the row, index, and place thereafter of the placed cell.
+          let row = placedCell.getAttribute("data-row");
+
+          let cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+          let index = cells.indexOf(placedCell);
+
+          // color the subsequent cells.
+          for (let i = index; i < index + currentDraggedLength; i++) {
+            cells[i].classList.add("occupied");
+          }
+
         }
       });
 
-      this.#gameContainer
-          .querySelector(".ship-placer")
+      this.#gameContainer.querySelector(".ship-placer")
           .addEventListener("dragover", (e) => {
             e.preventDefault();
           });
 
-      this.#gameContainer
-          .querySelector(".ship-placer")
+      this.#gameContainer.querySelector(".ship-placer")
           .addEventListener("drop", (e) => {
-        e.preventDefault();
+        
+            e.preventDefault();
 
-        const id = e.dataTransfer.getData("text/plain");
-        document.querySelector(`#${id}`).classList.remove("ship-placed");
-        e.target.append();
-      });
+            const id = e.dataTransfer.getData("text/plain");
+            document.querySelector(`#${id}`).classList.remove("ship-placed");
+            e.target.append();
+          });
 
     });
   }

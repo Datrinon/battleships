@@ -66,10 +66,18 @@
   background-color: rgba(0, 255, 64, 0.3);
 }
 
-
 .ship-placed {
   position: absolute;
   z-index: 10;
   top: 0;
   left: 0;
+  visibility: hidden;
+}
+
+.occupied {
+  background-color: cyan;
+}
+
+.occupied:hover {
+  background-color: cyan;
 }
