@@ -33,7 +33,7 @@
 
 .selectable {
   position: relative;
-  z-index: 1;
+  z-index: auto;
 }
 
 .selectable:hover {
@@ -68,10 +68,10 @@
 
 div.ship.ship-placed {
   position: absolute;
-  z-index: 10;
   top: 0;
   left: 0;
   background-color: greenyellow;
+  z-index: 10;
 }
 
 .occupied {

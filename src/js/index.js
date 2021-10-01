@@ -81,6 +81,7 @@ class ElementProvider {
         let cell = component.div("cell", "selectable");
         cell.dataset.row = i;
         cell.dataset.col = j;
+        cell.dataset.ship = "";
         gameboardGrid.append(cell);
       }
     }
@@ -215,6 +216,7 @@ class ElementProvider {
             // color the subsequent cells.
             for (let i = index; i < index + currentDraggedLength; i++) {
               cells[i].classList.remove("occupied");
+              cells[i].dataset.ship = "";
             }
           }
               
@@ -233,6 +235,7 @@ class ElementProvider {
           // color the subsequent cells.
           for (let i = index; i < index + currentDraggedLength; i++) {
             cells[i].classList.add("occupied");
+            cells[i].dataset.ship = id;
           }
 
         }
