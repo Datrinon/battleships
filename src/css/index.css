@@ -9,6 +9,12 @@
   justify-content: space-around;
 }
 
+.gameboard-grid {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  grid-template-rows: repeat(11, 1fr);
+}
+
 .cell {
   width: 24px;
   height: 24px;
@@ -25,6 +31,11 @@
   visibility: hidden;
 }
 
+.selectable {
+  position: relative;
+  z-index: 1;
+}
+
 .selectable:hover {
   background-color: rgb(222, 238, 252)
 }
@@ -38,6 +49,8 @@
 .ship.draggable {
   width:fit-content;
   background-color: cyan;
+  display: flex;
+  flex-direction: row;
 }
 
 .draggable {
@@ -49,6 +62,14 @@
 }
 
 .valid-drag {
-  border: 1px solid red;
-  background-color: rgba(255,0,0,0.3);
+  border: 1px solid rgb(0, 255, 55);
+  background-color: rgba(0, 255, 64, 0.3);
+}
+
+
+.ship-placed {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  left: 0;
 }

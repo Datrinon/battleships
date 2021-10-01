@@ -45,6 +45,7 @@ class ElementProvider {
 
     controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
     
+    this.#enableDragging();
   
     return this.#gameContainer;
   }
@@ -57,39 +58,37 @@ class ElementProvider {
    */
   #gameboard(playerName, className) {
     const gameboard = component.div("gameboard", className);
+    const gameboardGrid = component.div("gameboard-grid");
 
     const gridSize = this.gameManager.players[0].gameboard.size;
+    const numberCell = component.div("cell", "numbering");
+
+    gameboardGrid.prepend(component.div("cell", "blank"));
+  
+    // create row numbering
     for (let i = 0; i < gridSize; i++) {
-      let row = component.div("row", `row-${i}`);
-      for (let j = 0; j < gridSize; j++ ) {
-        let col = component.div("cell", "selectable");
-        col.dataset.row = i;
-        col.dataset.col = j;
-        row.append(col);
+      numberCell.textContent = i+1;
+      gameboardGrid.append(numberCell.cloneNode(true));  
+    }
+
+    // create column numbering and cells
+    for (let i = 0; i < gridSize; i++) {
+      numberCell.textContent = i+1;
+
+      gameboardGrid.append(numberCell.cloneNode(true));
+      
+      for (let j = 0; j < gridSize; j++) {
+        let cell = component.div("cell", "selectable");
+        cell.dataset.row = i;
+        cell.dataset.col = j;
+        gameboardGrid.append(cell);
       }
-
-      gameboard.append(row);
     }
 
-    // now, add grid system numbering.
-    // for headers, the row is a separate div. 
-    // then, column headers inserted before beginning of each row.
-    const rowHeader = component.div("row-header");
-    
-    rowHeader.prepend(component.div("cell", "blank"));
-    
-    for (let i = 1; i <= gridSize; i++) {
-      const numberCell = component.div("cell", "numbering");
-      numberCell.textContent = i;
-      // append to the top of the row.
-      rowHeader.append(numberCell);
-      gameboard.querySelector(`.row-${i-1}`).prepend(numberCell.cloneNode(true));
-    }
-
-    gameboard.prepend(rowHeader);
+    gameboard.append(gameboardGrid);
 
     // Apply headers for the gameboard
-    gameboard.prepend(component.heading(playerName, 2, "gameboard-possessor"));
+    gameboard.prepend(component.heading(playerName, 2, "gameboard-owner"));
 
     return gameboard;
   }
@@ -133,7 +132,6 @@ class ElementProvider {
       selection.append(ship);
     })
 
-    this.#enableDragging();
     shipInventory.append(header, selection);
 
     return shipInventory;
@@ -141,11 +139,14 @@ class ElementProvider {
 
   #enableDragging() {
     let currentDraggedLength;
+    let foo_id;
 
     window.addEventListener("dragstart", (e) => {
       e.dataTransfer.dropEffect = "move";
       e.dataTransfer.setData("text/plain", e.target.id);
       currentDraggedLength = e.target.childElementCount;
+      let img = new Image();
+      e.dataTransfer.setDragImage(img, 0, 0);
     });
 
 
@@ -166,7 +167,7 @@ class ElementProvider {
       });
 
       row.addEventListener("dragleave", () => {
-        document.querySelectorAll(".p1.gameboard .selectable")
+        document.querySelectorAll(".p1.gameboard .cell")
             .forEach(cell => {
               cell.classList.remove("valid-drag");
             });
@@ -176,13 +177,36 @@ class ElementProvider {
         // only when the area is a valid-drag do we add it in. otherwise, nope.
         if (e.target.classList.contains("valid-drag")) {
           e.preventDefault();
-          console.log(e.target);
+
           const id = e.dataTransfer.getData("text/plain");
-          console.log(id);
+          foo_id = id;
+
+          document.querySelectorAll(".p1.gameboard .cell")
+          .forEach(cell => {
+            cell.classList.remove("valid-drag");
+          });
+
+          document.querySelector(`#${id}`).classList.add("ship-placed");
+
           e.target.append(document.querySelector(`#${id}`));
         }
       });
 
+      this.#gameContainer
+          .querySelector(".ship-placer")
+          .addEventListener("dragover", (e) => {
+            e.preventDefault();
+          });
+
+      this.#gameContainer
+          .querySelector(".ship-placer")
+          .addEventListener("drop", (e) => {
+        e.preventDefault();
+
+        const id = e.dataTransfer.getData("text/plain");
+        document.querySelector(`#${id}`).classList.remove("ship-placed");
+        e.target.append();
+      });
 
     });
   }
