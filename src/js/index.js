@@ -3,7 +3,7 @@ import component from "./component";
 import Utility from "./utility";
 import Ship from "./ship";
 import Gameboard from "./gameboard";
-import {GAME_STATE} from "./gamemanager";
+import { GAME_STATE } from "./gamemanager";
 import GameManager from "./gamemanager";
 import Player from "./player";
 
@@ -29,25 +29,25 @@ class ElementProvider {
     const titleContainer = component.div("title-container");
     const titleLabel = component.heading("Battleships", 1);
     const authorLabel = component.p("by Dan T.", 2);
-  
+
     titleContainer.append(titleLabel, authorLabel);
-  
+
     return titleContainer;
   }
 
   gameArea() {
     this.#gameContainer = component.div("game-area");
     const gameboardContainer = component.div("gameboard-area");
-    const controlDialogContainer = component.div("controls-area"); 
-    
-    this.#gameContainer.append(gameboardContainer,controlDialogContainer);
+    const controlDialogContainer = component.div("controls-area");
+
+    this.#gameContainer.append(gameboardContainer, controlDialogContainer);
 
     gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2"));
 
     controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
-    
+
     this.#enableDragging();
-  
+
     return this.#gameContainer;
   }
 
@@ -65,19 +65,19 @@ class ElementProvider {
     const numberCell = component.div("cell", "numbering");
 
     gameboardGrid.prepend(component.div("cell", "blank"));
-  
+
     // create row numbering
     for (let i = 0; i < gridSize; i++) {
-      numberCell.textContent = i+1;
-      gameboardGrid.append(numberCell.cloneNode(true));  
+      numberCell.textContent = i + 1;
+      gameboardGrid.append(numberCell.cloneNode(true));
     }
 
     // create column numbering and cells
     for (let i = 0; i < gridSize; i++) {
-      numberCell.textContent = i+1;
+      numberCell.textContent = i + 1;
 
       gameboardGrid.append(numberCell.cloneNode(true));
-      
+
       for (let j = 0; j < gridSize; j++) {
         let cell = component.div("cell", "selectable");
         cell.dataset.row = i;
@@ -94,7 +94,7 @@ class ElementProvider {
 
     return gameboard;
   }
-  
+
   /**
    * Generates a dialog message, which is used to 
    * give the user directions on each phase of the game.
@@ -142,109 +142,20 @@ class ElementProvider {
   #enableDragging() {
     const removeDragGuide = () => {
       document.querySelectorAll(".p1.gameboard .selectable")
-      .forEach(cell => {
-        cell.classList.remove("valid-drag");
-      });
-    }
-
-    // enables ship rotation; to be called each time a ship is placed.
-    let self = this;
-    const allowPlacedShipRotation = () => {
-      let gridSize = self.gameManager.players[0].gameboard.grid.length;
-      // allow rotation of placed ships
-      document.querySelectorAll(".ship.draggable.ship-placed").forEach(ship => {
-        if (ship.onclick === null) {
-          ship.onclick = () => {
-            let verticalOn = ship.classList.contains("vertical");
-            let cell = ship.parentNode;
-            let shipLength = ship.childElementCount;
-
-            let rowIndex = parseInt(cell.dataset.row);
-            let colIndex = parseInt(cell.dataset.col);
-
-            console.log({rowIndex, shipLength, gridSize});
-            
-            if (rowIndex + shipLength > gridSize || colIndex + shipLength > gridSize) {
-              return;
-            }
-
-            // check if any ships are in the way of the rotation.
-            for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
-              
-              let cells = Array.from(document
-                  .querySelectorAll(`.p1.gameboard [data-row="${i}"]`));
-
-              for (let j = colIndex; j < colIndex + shipLength; j++) {
-                if (cells[j].classList.contains("occupied") && cells[j].dataset.ship !== ship.id) {
-                  // do not proceed.
-                  return;
-                }
-              }
-            }
-                      
-            // make sure there's enough space to move it vertically, based on the ship length.
-            // 1 no ships in the way
-            // 2.within the bounds of the gameboard.
-            // only then do you allow vertical class.
-            console.log(cell);
-
-            if (verticalOn) {
-              // vertical -> horizontal occupied
-              for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
-                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${i}"][data-col="${colIndex}"]`);
-                // strip vertical occupied
-                cell.classList.remove("occupied");
-                cell.dataset.ship = "";
-              }
-              
-              for (let i = colIndex + 1; i < colIndex + shipLength; i++) {
-                // add horizontal occupied
-                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${rowIndex}"][data-col="${i}"]`);
-                cell.classList.add("occupied");
-                cell.dataset.ship = ship.id;
-              }
-            } else {
-              // horizontal -> vertical occupied
-              for (let i = colIndex + 1; i < colIndex + shipLength; i++) {
-                // remove horizontal occupied
-                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${rowIndex}"][data-col="${i}"]`)
-                cell.classList.remove("occupied");
-                cell.dataset.ship = "";
-              }
-              
-              for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
-                // add vertical occupied
-                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${i}"][data-col="${colIndex}"]`)
-                cell.classList.add("occupied");
-                cell.dataset.ship = ship.id;
-              }
-            }
-
-            // toggle vertical for the view
-            ship.classList.toggle("vertical");
-            // then, alter the occupied class.
-
-          };
-        }
-      }); 
-
-      // disable rotation for ships that are not placed.
-      document.querySelectorAll(".ship.draggable:not(.ship-placed)").forEach(ship => {
-        if (ship.onclick !== null) {
-          ship.onclick = null;
-        }
-      }); 
-
+        .forEach(cell => {
+          cell.classList.remove("valid-drag");
+        });
     }
 
     let currentDraggedLength;
     let currentDraggedShipId;
+    let self = this;
 
     this.#gameContainer.querySelectorAll(".draggable").forEach(ship => {
       ship.addEventListener("dragstart", (e) => {
         e.dataTransfer.dropEffect = "move";
         e.dataTransfer.setData("text/plain", e.target.id);
-  
+
         currentDraggedLength = e.target.childElementCount;
         currentDraggedShipId = e.target.id ?? e.target.dataset.ship;
         // blank image
@@ -262,7 +173,7 @@ class ElementProvider {
         let hoverCell = Utility.getMatchingParent(e.target, ".selectable");
 
         document.querySelector(`#${currentDraggedShipId}`).classList.add("no-display");
-        
+
         if (document.querySelector(`#${currentDraggedShipId}`).classList.contains("vertical")) {
           // apply vertical guide.
           let col = hoverCell.dataset.col;
@@ -273,14 +184,14 @@ class ElementProvider {
             for (let i = index; i < index + currentDraggedLength; i++) {
               // not a valid placement.
               if (cellsCol[i].classList.contains("occupied")
-              && cellsCol[i].dataset.ship !== currentDraggedShipId) {
+                && cellsCol[i].dataset.ship !== currentDraggedShipId) {
                 removeDragGuide();
                 return;
               }
               cellsCol[i].classList.add("valid-drag");
             }
           }
-        } else { 
+        } else {
           // apply horizontal guide
           let row = hoverCell.dataset.row;
           let cellsRow = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
@@ -292,7 +203,7 @@ class ElementProvider {
             for (let i = index; i < index + currentDraggedLength; i++) {
               // not a valid placement.
               if (cellsRow[i].classList.contains("occupied")
-              && cellsRow[i].dataset.ship !== currentDraggedShipId) {
+                && cellsRow[i].dataset.ship !== currentDraggedShipId) {
                 console.log("Firah!");
                 removeDragGuide();
                 return;
@@ -323,15 +234,15 @@ class ElementProvider {
           // before moving the ship, determine if it has been placed already... 
           // this is true if the ship is inside a selectable cell.
           let lastPlacedLocation = document.querySelector(`.selectable #${id}`);
-          
+
           // if so we need to remove occupied from such cells.
-          if(lastPlacedLocation !== null) {
+          if (lastPlacedLocation !== null) {
             let cells;
             let vertical = lastPlacedLocation.classList.contains("vertical");
 
             // parentNode is the cell.
             lastPlacedLocation = lastPlacedLocation.parentNode;
-            
+
             if (vertical) {
               let col = lastPlacedLocation.dataset.col;
               cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
@@ -340,16 +251,16 @@ class ElementProvider {
               let row = lastPlacedLocation.dataset.row;
               cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
             }
-            
+
             let index = cells.indexOf(lastPlacedLocation);
-            
+
             // color the subsequent cells.
             for (let i = index; i < index + currentDraggedLength; i++) {
               cells[i].classList.remove("occupied");
               cells[i].dataset.ship = "";
             }
           }
-              
+
           let placedCell = e.target;
           // move the ship
           document.querySelector(`#${id}`).classList.add("ship-placed");
@@ -363,7 +274,7 @@ class ElementProvider {
             cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
           } else {
             // get the row, index, and place thereafter of the placed cell.
-            let row = placedCell.dataset.row; 
+            let row = placedCell.dataset.row;
             cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
           }
 
@@ -376,33 +287,124 @@ class ElementProvider {
           }
 
           // allow the ship to be rotated.
-          allowPlacedShipRotation();
+          self.#allowPlacedShipRotation();
         }
       });
 
       // code to return ship to inventory
       this.#gameContainer.querySelector(".ship-placer")
-          .addEventListener("dragover", (e) => {
-            e.preventDefault();
-          });
+        .addEventListener("dragover", (e) => {
+          e.preventDefault();
+        });
 
       this.#gameContainer.querySelector(".ship-placer")
-          .addEventListener("drop", (e) => {
-        
+        .addEventListener("drop", (e) => {
+
           e.preventDefault();
 
           const id = e.dataTransfer.getData("text/plain");
           document.querySelector(`#${id}`).classList.remove("ship-placed");
           e.target.append();
-      });
+        });
     });
+  }
+
+  /**
+   * Allows for ships to be rotated; this is invoked each time a ship is placed,
+   * to allow ships, on the gameboard, to be rotated.
+   */
+  #allowPlacedShipRotation() {
+    let gridSize = this.gameManager.players[0].gameboard.grid.length;
+    // allow rotation of placed ships
+    document.querySelectorAll(".ship.draggable.ship-placed").forEach(ship => {
+      if (ship.onclick === null) {
+        ship.onclick = () => {
+          let verticalOn = ship.classList.contains("vertical");
+          let cell = ship.parentNode;
+          let shipLength = ship.childElementCount;
+
+          let rowIndex = parseInt(cell.dataset.row);
+          let colIndex = parseInt(cell.dataset.col);
+
+          console.log({ rowIndex, shipLength, gridSize });
+
+          if (rowIndex + shipLength > gridSize || colIndex + shipLength > gridSize) {
+            return;
+          }
+
+          // check if any ships are in the way of the rotation.
+          for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
+
+            let cells = Array.from(document
+              .querySelectorAll(`.p1.gameboard [data-row="${i}"]`));
+
+            for (let j = colIndex; j < colIndex + shipLength; j++) {
+              if (cells[j].classList.contains("occupied") && cells[j].dataset.ship !== ship.id) {
+                // do not proceed.
+                return;
+              }
+            }
+          }
+
+          // make sure there's enough space to move it vertically, based on the ship length.
+          // 1 no ships in the way
+          // 2.within the bounds of the gameboard.
+          // only then do you allow vertical class.
+          console.log(cell);
+
+          if (verticalOn) {
+            // vertical -> horizontal occupied
+            for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
+              let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${i}"][data-col="${colIndex}"]`);
+              // strip vertical occupied
+              cell.classList.remove("occupied");
+              cell.dataset.ship = "";
+            }
+
+            for (let i = colIndex + 1; i < colIndex + shipLength; i++) {
+              // add horizontal occupied
+              let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${rowIndex}"][data-col="${i}"]`);
+              cell.classList.add("occupied");
+              cell.dataset.ship = ship.id;
+            }
+          } else {
+            // horizontal -> vertical occupied
+            for (let i = colIndex + 1; i < colIndex + shipLength; i++) {
+              // remove horizontal occupied
+              let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${rowIndex}"][data-col="${i}"]`)
+              cell.classList.remove("occupied");
+              cell.dataset.ship = "";
+            }
+
+            for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
+              // add vertical occupied
+              let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${i}"][data-col="${colIndex}"]`)
+              cell.classList.add("occupied");
+              cell.dataset.ship = ship.id;
+            }
+          }
+
+          // toggle vertical for the view
+          ship.classList.toggle("vertical");
+          // then, alter the occupied class.
+
+        };
+      }
+    });
+    // disable rotation for ships that are not placed.
+    document.querySelectorAll(".ship.draggable:not(.ship-placed)").forEach(ship => {
+      if (ship.onclick !== null) {
+        ship.onclick = null;
+      }
+    });
+
   }
 }
 
 
-(function main(){
+(function main() {
   const body = document.body;
-  
+
   const p1 = new Player("Commander Blue", false);
   const p2 = new Player("Commander Red", true);
 

@@ -79,13 +79,15 @@ div.ship.ship-placed {
   z-index: 10;
 }
 
+div.ship.ship-placed:hover {
+  box-shadow: 0px 0px 10px #4e8a02;
+}
+
 .occupied {
-  border: 1px solid red;
-  background-color: rgba(255,0,0,0.3);
+  background-color: rgb(222, 238, 252);
 }
 
 .occupied:hover {
-  background-color: cyan;
 }
 
 .ship.draggable.vertical {
