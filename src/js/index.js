@@ -156,29 +156,30 @@ class ElementProvider {
           ship.onclick = () => {
             let cell = ship.parentNode;
             let shipLength = ship.childElementCount;
-            console.log(shipLength);
 
             let rowIndex = parseInt(cell.dataset.row);
             let colIndex = parseInt(cell.dataset.col);
 
             if (rowIndex + shipLength > gridSize) {
+              console.log("ret early")
               return;
             }
 
             if (colIndex + shipLength > gridSize) {
+              console.log("ret early")
               return;
             }
             
             // check if any ships are in the way of the rotation.
             for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
+              
               let cells = Array.from(document
                   .querySelectorAll(`.p1.gameboard [data-row="${i}"]`));
 
               for (let j = colIndex; j < colIndex + shipLength; j++) {
-                console.log(colIndex + shipLength);
-
-                if (cells[j].classList.contains("occupied")) {
+                if (cells[j].classList.contains("occupied") && cells[j].dataset.ship !== ship.id) {
                   // do not proceed.
+                  console.log("ret early")
                   return;
                 }
               }
@@ -190,7 +191,42 @@ class ElementProvider {
             // only then do you allow vertical class.
             console.log(cell);
 
+            if (ship.classList.contains("vertical")) {
+              // vertical -> horizontal occupied
+              for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
+                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${i}"][data-col="${colIndex}"]`);
+                // strip vertical occupied
+                cell.classList.remove("occupied");
+                cell.dataset.ship = "";
+              }
+              
+              for (let i = colIndex + 1; i < colIndex + shipLength; i++) {
+                // add horizontal occupied
+                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${rowIndex}"][data-col="${i}"]`);
+                cell.classList.add("occupied");
+                cell.dataset.ship = ship.id;
+              }
+            } else {
+              // horizontal -> vertical occupied
+              for (let i = colIndex + 1; i < colIndex + shipLength; i++) {
+                // remove horizontal occupied
+                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${rowIndex}"][data-col="${i}"]`)
+                cell.classList.remove("occupied");
+                cell.dataset.ship = "";
+              }
+              
+              for (let i = rowIndex + 1; i < rowIndex + shipLength; i++) {
+                // add vertical occupied
+                let cell = document.querySelector(`.p1.gameboard .selectable[data-row="${i}"][data-col="${colIndex}"]`)
+                cell.classList.add("occupied");
+                cell.dataset.ship = ship.id;
+              }
+            }
+
+            // toggle vertical for the view
             ship.classList.toggle("vertical");
+            // then, alter the occupied class.
+
           };
         }
       }); 
