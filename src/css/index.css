@@ -130,5 +130,5 @@ div.ship.ship-placed:hover {
 }
 
 .ship-placed .cell {
-  border: 1px solid rgba(27, 102, 71, 0.3);
+  /* border: 1px solid rgba(27, 102, 71, 0.3); */
 }

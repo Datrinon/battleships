@@ -11,6 +11,8 @@ import Player from "./player";
 import "../css/reset.css";
 import "../css/index.css";
 
+// perform any DOM change action in your page. e.g. show/hide
+
 
 /**
  * Creates elements for Battleship.
@@ -44,7 +46,7 @@ export class BattleshipElements {
 
     gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2"));
 
-    controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
+    controlDialogContainer.append(this.#dialog(), this.#shipPlacement(), this.#startGamePrompt());
 
     this.#enableDraggingAndRotation();
 
@@ -141,6 +143,10 @@ export class BattleshipElements {
 
   /**
    * Contains a collection of callbacks to enable drag 'n' drop on the gameboard with rotation.
+   * Works with the drag and drop API, so it works to assign callbacks to the 
+   * draggable items, and all the droppable zone it pertains to. In this case,
+   * the ships are the draggables, and the drop zones are all the cells of 
+   * player 1's gameboard.
    */
   #enableDraggingAndRotation() {
     const removeDragGuide = () => {
@@ -228,71 +234,72 @@ export class BattleshipElements {
       cell.addEventListener("drop", (e) => {
         document.querySelector(`#${currentDraggedShipId}`).classList.remove("no-display");
         // only when the area is a valid-drag do we add it in. otherwise, nope.
-        if (e.target.classList.contains("valid-drag")) {
-          e.preventDefault();
-          removeDragGuide();
+        if (!e.target.classList.contains("valid-drag")) {
+          return;
+        }
 
-          const id = e.dataTransfer.getData("text/plain");
+        e.preventDefault();
+        removeDragGuide();
 
-          // before moving the ship, determine if it has been placed already... 
-          // this is true if the ship is inside a selectable cell.
-          let lastPlacedLocation = document.querySelector(`.selectable #${id}`);
+        const id = e.dataTransfer.getData("text/plain");
 
-          // if so we need to remove occupied from such cells.
-          if (lastPlacedLocation !== null) {
-            let cells;
-            let vertical = lastPlacedLocation.classList.contains("vertical");
+        // before moving the ship, determine if it has been placed already... 
+        // this is true if the ship is inside a selectable cell.
+        let lastPlacedLocation = document.querySelector(`.selectable #${id}`);
 
-            // parentNode is the cell.
-            lastPlacedLocation = lastPlacedLocation.parentNode;
-
-            if (vertical) {
-              let col = lastPlacedLocation.dataset.col;
-              cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
-            } else {
-              // remove occupied marking from those cells.
-              let row = lastPlacedLocation.dataset.row;
-              cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
-            }
-
-            let index = cells.indexOf(lastPlacedLocation);
-
-            // color the subsequent cells.
-            for (let i = index; i < index + currentDraggedLength; i++) {
-              cells[i].classList.remove("occupied");
-              cells[i].dataset.ship = "";
-            }
-          }
-
-          let placedCell = e.target;
-          // move the ship
-          document.querySelector(`#${id}`).classList.add("ship-placed");
-          placedCell.append(document.querySelector(`#${id}`));
-
-          let vertical = document.querySelector(`#${id}`).classList.contains("vertical");
+        // if so we need to remove occupied from such cells.
+        if (lastPlacedLocation !== null) {
           let cells;
-          let start, mid, end;
+          let vertical = lastPlacedLocation.classList.contains("vertical");
+
+          // parentNode is the cell.
+          lastPlacedLocation = lastPlacedLocation.parentNode;
 
           if (vertical) {
-            let col = placedCell.dataset.col;
+            let col = lastPlacedLocation.dataset.col;
             cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
           } else {
-            // get the row, index, and place thereafter of the placed cell.
-            let row = placedCell.dataset.row;
+            // remove occupied marking from those cells.
+            let row = lastPlacedLocation.dataset.row;
             cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
           }
 
-          let index = cells.indexOf(placedCell);
+          let index = cells.indexOf(lastPlacedLocation);
 
           // color the subsequent cells.
           for (let i = index; i < index + currentDraggedLength; i++) {
-            cells[i].classList.add("occupied");
-            cells[i].dataset.ship = id;
+            cells[i].classList.remove("occupied");
+            cells[i].dataset.ship = "";
           }
-
-          // allow the ship to be rotated.
-          self.#allowPlacedShipRotation();
         }
+
+        let placedCell = e.target;
+        // move the ship
+        document.querySelector(`#${id}`).classList.add("ship-placed");
+        placedCell.append(document.querySelector(`#${id}`));
+
+        let vertical = document.querySelector(`#${id}`).classList.contains("vertical");
+        let cells;
+
+        if (vertical) {
+          let col = placedCell.dataset.col;
+          cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
+        } else {
+          // get the row, index, and place thereafter of the placed cell.
+          let row = placedCell.dataset.row;
+          cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+        }
+
+        let index = cells.indexOf(placedCell);
+
+        // color the subsequent cells.
+        for (let i = index; i < index + currentDraggedLength; i++) {
+          cells[i].classList.add("occupied");
+          cells[i].dataset.ship = id;
+        }
+
+        // allow the ship to be rotated.
+        self.#allowPlacedShipRotation();
       });
 
       // code to return ship to inventory
@@ -474,6 +481,36 @@ export class BattleshipElements {
 
 
   }
+
+  /**
+   * Asks user for their name and to start the game... only when the ship placement container is empty
+   * will the start game button unlock.
+   */
+  #startGamePrompt() {
+    let self = this;
+    let startGameForm = Utility.createElement("form", "start-game-prompt");
+    let [playerNameLabel, playerNameField] = component.formInput("Name", "input", "p1-name", "p1-name");
+    let startGameButton = component.button("Start Game!", "start-game-button");
+    let errorField = component.p("Error Field Here", "form-error-field");
+
+    playerNameField.value = "Commander";
+    playerNameField.required = true;
+
+    startGameForm.append(playerNameLabel, playerNameField, startGameButton, errorField);
+
+
+    startGameButton.disabled = true;
+
+    
+
+    startGameForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      self.gameManager.startGame();
+    });
+
+    return startGameForm;
+  }
 }
 
 
@@ -492,8 +529,6 @@ export class BattleshipElements {
   page.setDialog(GAME_STATE.gamePrompt);
 
   body.append(header, gameArea);
-  
-  game.startGame();
 })();
 
 /*
