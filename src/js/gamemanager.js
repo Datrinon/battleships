@@ -135,65 +135,71 @@ export default class GameManager {
     this.p1turn = !this.p1turn; // invert the turns.
   }
 
-  /**
-   * For the CPU to decide on an attack.
-   */
-  #cpuAttack() {
+  #cpuAttackDetermineCoordinates(cpu) {
     let row;
     let col; 
 
-    switch(this.players[1].cpuBehavior) {
-      case CPU_STATE.random:
-        row = Math.round(Math.random() * (this.players[1].gameboard.size-1));
-        col = Math.round(Math.random() * (this.players[1].gameboard.size-1));
+    switch(cpu.cpuBehavior) {
+      case CPU_STATE.random: {
+        row = Math.round(Math.random() * (cpu.gameboard.size-1));
+        col = Math.round(Math.random() * (cpu.gameboard.size-1));
         break;
+      }
       case CPU_STATE.found: {
         let rowOrCol = Math.round(Math.random());
         let plusMinus = Math.round(Math.random()) === 0 ? 1 : -1;
 
         if (rowOrCol) {
-          row = this.players[1].cpuLastSuccessfulHit.row + plusMinus;
+          row = cpu.cpuLastSuccessfulHit.row + plusMinus;
         } else {
-          col = this.players[1].cpuLastSuccessfulHit.col + plusMinus;
+          col = cpu.cpuLastSuccessfulHit.col + plusMinus;
         }
         break;
       }
       case CPU_STATE.focused: {
-        let rowDiff = this.players[1].cpuLastSuccessfulHit.row -
-            this.players[1].cpu2ndLastSuccessfulHit.row;
+        let rowDiff = cpu.cpuLastSuccessfulHit.row -
+            cpu.cpu2ndLastSuccessfulHit.row;
         
-        let colDiff = this.players[1].cpuLastSuccessfulHit.col -
-            this.players[1].cpu2ndLastSuccessfulHit.col;
+        let colDiff = cpu.cpuLastSuccessfulHit.col -
+            cpu.cpu2ndLastSuccessfulHit.col;
         
         if (rowDiff) {
           switch(rowDiff) {
             case 1: // row difference 1 means move up;
-              row = this.players[1].cpu2ndLastSuccessfulHit.row + 1;
-              col = this.players[1].cpu2ndLastSuccessfulHit.col;
+              row = cpu.cpu2ndLastSuccessfulHit.row + 1;
+              col = cpu.cpu2ndLastSuccessfulHit.col;
               break;
             case -1: // row difference -1 means move down.
-              row = this.players[1].cpu2ndLastSuccessfulHit.row - 1;
-              col = this.players[1].cpu2ndLastSuccessfulHit.col;
+              row = cpu.cpu2ndLastSuccessfulHit.row - 1;
+              col = cpu.cpu2ndLastSuccessfulHit.col;
               break;
           }
         } else if (colDiff) {
           switch (colDiff) {
             case 1: // if 1, move left.
-              row = this.players[1].cpu2ndLastSuccessfulHit.row;
-              col = this.players[1].cpu2ndLastSuccessfulHit.col - 1;
+              row = cpu.cpu2ndLastSuccessfulHit.row;
+              col = cpu.cpu2ndLastSuccessfulHit.col - 1;
               break;
             case -1: // if -1, move right.
-              row = this.players[1].cpu2ndLastSuccessfulHit.row;
-              col = this.players[1].cpu2ndLastSuccessfulHit.col + 1;
+              row = cpu.cpu2ndLastSuccessfulHit.row;
+              col = cpu.cpu2ndLastSuccessfulHit.col + 1;
               break;
           }
         }
-
         break;
       }
-      default:
-
     }
+
+    return [row, col];
+  }
+
+  /**
+   * For the CPU to decide on an attack.
+   */
+  #cpuAttack() {
+    let [row, col] = this.#cpuAttackDetermineCoordinates(this.players[1]);
+
+
     
     player[1].attack(player[0])
 
