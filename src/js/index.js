@@ -16,7 +16,7 @@ import "../css/index.css";
   const p1 = new Player("Commander Blue", false);
   const p2 = new Player("Commander Red", true);
 
-  const game = new GameManager([p1, p2]);
+  const game = new GameManager(p1, p2);
   const page = new BattleshipElements(game);
 
   const header = page.header();

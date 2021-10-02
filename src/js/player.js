@@ -6,25 +6,33 @@ export const CPU_STATE = {
   focused : "focused"
 };
 
+
+
 export default class Player {
   name;
   cpu;
   /**
-   * Keeps track of the CPU's last successful hit.
+   * Keeps track of coordinates of the CPU's last successful hit.
    */
-  cpuLastSuccessfulHit;
+  cpuFirstSuccessfulHit = {row: null, col: null};
+  /**
+   * If the CPU scores two hits on a ship, then use this as a flag to switch
+   * it's behavior to focused.
+   */
+  cpuSecondSuccessfulHit = {row: null, col: null};
   /**
    * There are three states for the CPU to employ: random, found, focused.
    */
   cpuBehavior;
+  cpuFocusDirection;
   score;
   gameboard;
 
   constructor(name, isCpu) {
     this.name = name;
     this.cpu = isCpu;
-    this.cpuLastSuccessfulHit = [];
-    this.cpuBehavior =
+    this.cpuBehavior = CPU_STATE.random;
+    this.cpuFocusDirection = null;
     this.score = 0;
     this.gameboard = new Gameboard();
   }

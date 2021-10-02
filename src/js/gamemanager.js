@@ -40,18 +40,18 @@ export default class GameManager {
   shipLengths;
   
   /**
-   * Create an instance of the game.
+   * Create an instance of the game. Assigns CPU as player 2.
    * @param {Player[]} players - An array of the players in the game.
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(players, p1start = true, shipLengths = [2]) {
+  constructor(player1, player2, p1start = true, shipLengths = [2]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
 
     GameManager.#instance = this;
-    this.players = players;
+    this.players = player2.cpu ? [player1, player2] : [player2, player1];
     this.p1turn = p1start;
     this.shipLengths = shipLengths;
   }
@@ -135,10 +135,69 @@ export default class GameManager {
     this.p1turn = !this.p1turn; // invert the turns.
   }
 
+  /**
+   * For the CPU to decide on an attack.
+   */
   #cpuAttack() {
+    let row;
+    let col; 
+
+    switch(this.players[1].cpuBehavior) {
+      case CPU_STATE.random:
+        row = Math.round(Math.random() * (this.players[1].gameboard.size-1));
+        col = Math.round(Math.random() * (this.players[1].gameboard.size-1));
+        break;
+      case CPU_STATE.found: {
+        let rowOrCol = Math.round(Math.random());
+        let plusMinus = Math.round(Math.random()) === 0 ? 1 : -1;
+
+        if (rowOrCol) {
+          row = this.players[1].cpuLastSuccessfulHit.row + plusMinus;
+        } else {
+          col = this.players[1].cpuLastSuccessfulHit.col + plusMinus;
+        }
+        break;
+      }
+      case CPU_STATE.focused: {
+        let rowDiff = this.players[1].cpuLastSuccessfulHit.row -
+            this.players[1].cpu2ndLastSuccessfulHit.row;
+        
+        let colDiff = this.players[1].cpuLastSuccessfulHit.col -
+            this.players[1].cpu2ndLastSuccessfulHit.col;
+        
+        if (rowDiff) {
+          switch(rowDiff) {
+            case 1: // row difference 1 means move up;
+              row = this.players[1].cpu2ndLastSuccessfulHit.row + 1;
+              col = this.players[1].cpu2ndLastSuccessfulHit.col;
+              break;
+            case -1: // row difference -1 means move down.
+              row = this.players[1].cpu2ndLastSuccessfulHit.row - 1;
+              col = this.players[1].cpu2ndLastSuccessfulHit.col;
+              break;
+          }
+        } else if (colDiff) {
+          switch (colDiff) {
+            case 1: // if 1, move left.
+              row = this.players[1].cpu2ndLastSuccessfulHit.row;
+              col = this.players[1].cpu2ndLastSuccessfulHit.col - 1;
+              break;
+            case -1: // if -1, move right.
+              row = this.players[1].cpu2ndLastSuccessfulHit.row;
+              col = this.players[1].cpu2ndLastSuccessfulHit.col + 1;
+              break;
+          }
+        }
+
+        break;
+      }
+      default:
+
+    }
+    
+    player[1].attack(player[0])
 
   }
-
 
   #cpuPlaceShips(player) {
     this.shipLengths.forEach((length, index) => {
@@ -148,9 +207,6 @@ export default class GameManager {
       let vertical;
 
       while (status === null) {
-        // TODO
-        // when testing the game phase, override row and col to be 0, 0 to test
-        // victory phase.
         row = Math.round(Math.random() * (player.gameboard.size-1));
         col = Math.round(Math.random() * (player.gameboard.size-1));
         vertical = Math.round(Math.random());
