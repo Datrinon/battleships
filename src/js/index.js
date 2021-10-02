@@ -11,8 +11,6 @@ import Player from "./player";
 import "../css/reset.css";
 import "../css/index.css";
 
-// perform any DOM change action in your page. e.g. show/hide
-
 
 /**
  * Creates elements for Battleship.
@@ -46,7 +44,8 @@ export class BattleshipElements {
 
     gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2"));
 
-    controlDialogContainer.append(this.#dialog(), this.#shipPlacement(), this.#startGamePrompt());
+    controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
+    controlDialogContainer.append(this.#startGamePrompt());
 
     this.#enableDraggingAndRotation();
 
@@ -504,15 +503,28 @@ export class BattleshipElements {
 
     startGameButton.disabled = true;
 
-    
-
     startGameForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
       self.gameManager.startGame();
     });
 
+    const DOMObserver = new MutationObserver(this.#checkAllShipsPlaced);
+    DOMObserver.observe(this.#gameContainer.querySelector(".ship-selection"), {childList: true});
+
     return startGameForm;
+  }
+
+  /**
+   * Have all ships been placed?
+   */
+  #checkAllShipsPlaced(mutated) {
+    let shipsRemaining = mutated[0].target.childElementCount;
+    if (shipsRemaining > 0) {
+      document.querySelector(".start-game-button").disabled = true;
+    } else {
+      document.querySelector(".start-game-button").disabled = false;
+    }
   }
 }
 
