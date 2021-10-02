@@ -477,8 +477,6 @@ import Utility from "./utility";
         }
       }
     }
-
-
   }
 
   /**
@@ -552,4 +550,5 @@ import Utility from "./utility";
       
     return summary;
   }
+
 }

@@ -1,5 +1,6 @@
 import { BattleshipElements } from "./BattleshipElement";
 import Gameboard from "./gameboard";
+import { CPU_STATE } from "./player";
 
 /**
  * Manages a game session for battleship. Keeps track of players.
@@ -37,7 +38,7 @@ export default class GameManager {
    * @type {number[]}
    */
   shipLengths;
-
+  
   /**
    * Create an instance of the game.
    * @param {Player[]} players - An array of the players in the game.
@@ -81,7 +82,7 @@ export default class GameManager {
           } else {
             return resolve(GAME_STATE.p2turn);
           }
-          }, 1500);
+          }, 750);
       });
     })().then((result) => {
       BattleshipElements.setDialog(result);
@@ -89,8 +90,55 @@ export default class GameManager {
       document.querySelectorAll(".selectable").forEach(cell => {
         cell.classList.add("attackable");
       });
+
+      const self = this;
+      document.querySelectorAll(".p2.gameboard .attackable").forEach(cell => {
+        cell.addEventListener("click", (e) =>{
+          if (self.p1turn) {
+            self.#playerAttack.call(this, e, self.players[0], self.players[1]);
+          }
+          
+        });
+      })
     })
   }
+
+  /**
+   * Attack a player.
+   * 
+   * @param {Event} e - Event which the handler captures.
+   * @param {Player} attacker - The attacking player.
+   * @param {Player} attacked - The player receiving the attack.
+   * @returns 
+   */
+  #playerAttack(e, attacker, attacked) {
+    if (e.currentTarget.classList.contains("attacked")) {
+      console.log("This cell has already been attacked!");
+      return;
+    } else {
+      e.currentTarget.classList.add("attacked");
+    }
+
+    const row = e.currentTarget.dataset.row;
+    const col = e.currentTarget.dataset.col;
+
+    console.log(row, col);
+    let result = attacker.attack(attacked, row, col);
+    switch(result) {
+      case 1: 
+        console.log("It's a hit!");
+        break;
+      case 0:
+        console.log("It's a miss!");
+        break;
+    }
+    this.p1turn = !this.p1turn; // invert the turns.
+  }
+
+  #cpuAttack() {
+
+  }
+
 
   #cpuPlaceShips(player) {
     this.shipLengths.forEach((length, index) => {

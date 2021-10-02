@@ -142,7 +142,24 @@ div.ship.ship-placed:hover {
   border: 1px solid red;
 }
 
+.p1.gameboard .cell.attackable .ship {
+  cursor: default;
+}
+
+.p1.gameboard .cell.attackable:hover {
+  background-color: revert;
+}
+
 .p2.gameboard .cell.attackable:hover {
-  background-color: red;
+  background-color: rgba(255,0,0,0.6);
   cursor: crosshair;
+}
+
+.gameboard .cell.attacked::after {
+  content: "X";
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: red;
+  visibility: unset;
 }
