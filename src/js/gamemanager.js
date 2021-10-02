@@ -1,4 +1,4 @@
-import { BattleshipElements } from "./index";
+import { BattleshipElements } from "./BattleshipElement";
 
 /**
  * Manages a game session for battleship. Keeps track of players.
@@ -63,6 +63,8 @@ export default class GameManager {
         this.#cpuPlaceShips(player);
       }
     });
+
+    
   }
 
   #cpuPlaceShips(player) {
