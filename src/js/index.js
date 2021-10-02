@@ -171,6 +171,10 @@ export class BattleshipElements {
         let img = new Image();
         e.dataTransfer.setDragImage(img, 0, 0);
       });
+
+      ship.addEventListener("dragend", () => {
+        document.querySelector(`#${currentDraggedShipId}`).classList.remove("no-display");
+      });
     });
 
     // all cells that are selectable are droppable areas.
@@ -232,7 +236,6 @@ export class BattleshipElements {
       cell.addEventListener("dragleave", removeDragGuide);
 
       cell.addEventListener("drop", (e) => {
-        document.querySelector(`#${currentDraggedShipId}`).classList.remove("no-display");
         // only when the area is a valid-drag do we add it in. otherwise, nope.
         if (!e.target.classList.contains("valid-drag")) {
           return;
