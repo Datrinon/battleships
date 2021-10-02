@@ -96,4 +96,39 @@ div.ship.ship-placed:hover {
 
 .cpu-ship-placed {
   background-color: rgba(255, 136, 136, 0.863);
+  border: 1px solid darkred;
+}
+
+.ship-start-horizontal {
+  border-right: 1px solid transparent;
+}
+
+.ship-middle-horizontal {
+  border-left: 1px solid transparent;
+  border-right: 1px solid transparent;
+}
+
+.ship-end-horizontal {
+  border-left: 1px solid transparent;
+}
+
+.ship-start-vertical {
+  border-bottom: 1px solid transparent;
+}
+
+.ship-middle-vertical {
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+}
+
+.ship-end-vertical {
+  border-top: 1px solid transparent;
+}
+
+.cell-transparent {
+  border: 1px solid transparent;
+}
+
+.ship-placed .cell {
+  border: 1px solid rgba(27, 102, 71, 0.3);
 }

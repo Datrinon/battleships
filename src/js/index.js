@@ -271,6 +271,7 @@ export class BattleshipElements {
 
           let vertical = document.querySelector(`#${id}`).classList.contains("vertical");
           let cells;
+          let start, mid, end;
 
           if (vertical) {
             let col = placedCell.dataset.col;
@@ -432,18 +433,42 @@ export class BattleshipElements {
 
 
     if (vertical) {
-      let rows = Array.from(gameboard.querySelectorAll(`.selectable[data-row="${row}"]`));
+      let rows = Array.from(gameboard.querySelectorAll(`.selectable[data-col="${col}"]`));
 
       for (let i = row; i < row + length; i++) {
         rows[i].classList.add("occupied", cpuTag);
         rows[i].dataset.ship = id;
+
+        switch(i) {
+          case row: // start
+            rows[i].classList.add("ship-start-vertical");
+            break;
+          case row + length - 1: // end
+            rows[i].classList.add("ship-end-vertical");
+            break;
+          default: // mid
+            rows[i].classList.add("ship-middle-vertical");
+            break;
+        }
       }
     } else {
-      let cols = Array.from(gameboard.querySelectorAll(`.selectable[data-col="${col}"]`));
+      let cols = Array.from(gameboard.querySelectorAll(`.selectable[data-row="${row}"]`));
       
       for (let i = col; i < col + length; i++) {
         cols[i].classList.add("occupied", cpuTag);
         cols[i].dataset.ship = id;
+
+        switch(i) {
+          case col: // start
+            cols[i].classList.add("ship-start-horizontal");
+            break;
+          case col + length - 1: // end
+            cols[i].classList.add("ship-end-horizontal");
+            break;
+          default: // mid
+            cols[i].classList.add("ship-middle-horizontal");
+            break;
+        }
       }
     }
 

@@ -68,18 +68,21 @@ export default class GameManager {
   #cpuPlaceShips(player) {
     this.shipLengths.forEach((length, index) => {
       let status = null;
+      let row;
+      let col;
+      let vertical;
 
       while (status === null) {
         // TODO
         // when testing the game phase, override row and col to be 0, 0 to test
         // victory phase.
-        let row = Math.round(Math.random() * (player.gameboard.size-1));
-        let col = Math.round(Math.random() * (player.gameboard.size-1));
-        let vertical = Math.round(Math.random());
+        row = Math.round(Math.random() * (player.gameboard.size-1));
+        col = Math.round(Math.random() * (player.gameboard.size-1));
+        vertical = Math.round(Math.random());
         status = player.gameboard.placeShip(length, row, col, vertical);
-
-        BattleshipElements.placeShipManually(length, row, col, vertical, true, `cpu-ship${index}`);
       }
+
+      BattleshipElements.placeShipManually(length, row, col, vertical, true, `cpu-ship${index}`);
     });
   }
 }
