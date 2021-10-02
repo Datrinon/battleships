@@ -22,9 +22,9 @@ import "../css/index.css";
   const header = page.header();
   const gameArea = page.gameArea();
 
-  page.setDialog(GAME_STATE.gamePrompt);
-
-  body.append(header, gameArea);
+  body.append(header,gameArea);
+  
+  BattleshipElements.setDialog(GAME_STATE.gamePrompt);
 })();
 
 /*

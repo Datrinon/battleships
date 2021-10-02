@@ -1,4 +1,5 @@
 import { BattleshipElements } from "./BattleshipElement";
+import Gameboard from "./gameboard";
 
 /**
  * Manages a game session for battleship. Keeps track of players.
@@ -12,7 +13,7 @@ export const GAME_STATE = {
   p1victory: "Player 1 wins.",
   p2victory: "Player 2 wins.",
   restart: "Restarting game...",
-  playing: "Game active.",
+  playing: "Game start!",
   gamePrompt: "Welcome. Drag ships onto gameboard. Click (when placed): Rotate."
 };
 
@@ -43,7 +44,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(players, p1start = true, shipLengths = [2, 3, 3, 4, 5]) {
+  constructor(players, p1start = true, shipLengths = [2]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
@@ -55,16 +56,40 @@ export default class GameManager {
   }
 
   /**
-   * Start the game.
+   * Start the game. Has the CPU place ships, issues a start message on the view,
+   * disables all handlers of all ships, and then has one of the players select a move.
+   * Makes all cells "attackable."
    */
   startGame() {
+    document.querySelectorAll(".ship").forEach(ship => {
+      ship.onclick = null;
+      ship.draggable = false;
+    });
+
     this.players.forEach(player => {
       if (player.cpu) {
         this.#cpuPlaceShips(player);
       }
     });
-
     
+    (() => {
+      return new Promise((resolve) => {
+        BattleshipElements.setDialog(GAME_STATE.playing);
+        setTimeout(() => {
+          if (GameManager.#instance.p1turn) {
+            return resolve(GAME_STATE.p1turn);
+          } else {
+            return resolve(GAME_STATE.p2turn);
+          }
+          }, 1500);
+      });
+    })().then((result) => {
+      BattleshipElements.setDialog(result);
+      document.querySelector(".gameboard-area").classList.add("game-active");
+      document.querySelectorAll(".selectable").forEach(cell => {
+        cell.classList.add("attackable");
+      });
+    })
   }
 
   #cpuPlaceShips(player) {

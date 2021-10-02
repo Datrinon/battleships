@@ -101,8 +101,13 @@ import Utility from "./utility";
     return dialogContainer;
   }
 
-  setDialog(message) {
-    this.#dialogHolder.querySelector(".dialog-msg").textContent = message;
+  /**
+   * Set the dialog for the battleship game. Preferably, use messages from the
+   * gamemanager GAME_STATE object.
+   * @param {} message 
+   */
+  static setDialog(message) {
+    document.querySelector(".dialog-msg").textContent = message;
   }
 
   /**
@@ -226,6 +231,7 @@ import Utility from "./utility";
       cell.addEventListener("dragleave", removeDragGuide);
 
       cell.addEventListener("drop", (e) => {
+        document.querySelector(`#${currentDraggedShipId}`).classList.remove("no-display");
         // only when the area is a valid-drag do we add it in. otherwise, nope.
         if (!e.target.classList.contains("valid-drag")) {
           return;
