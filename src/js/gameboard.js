@@ -104,6 +104,10 @@ export default class Gameboard {
     return this.grid;
   }
 
+  isShipSunk(index) {
+    return this.ships[index].isSunk;
+  }
+
   /**
    * Have all ships been sunk on the gameboard?
    */

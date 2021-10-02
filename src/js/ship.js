@@ -42,7 +42,6 @@ export default class Ship {
   constructor(length) {
     this.length = length ?? 1;
     this.name = setName(this.length);
-
     this.status = {};
   }
 

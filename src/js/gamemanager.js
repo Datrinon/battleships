@@ -16,6 +16,8 @@ export const GAME_STATE = {
   restart: "Restarting game...",
   playing: "Game start!",
   gamePrompt: "Welcome. Drag ships onto gameboard. Click (when placed): Rotate."
+  cpuShipSunk: "A ship of the CPU's was sunk!",
+  playerShipSunk: "A ship of the player's was sunk!"
 };
 
 
@@ -197,12 +199,51 @@ export default class GameManager {
    * For the CPU to decide on an attack.
    */
   #cpuAttack() {
-    let [row, col] = this.#cpuAttackDetermineCoordinates(this.players[1]);
+    let status = -1;
+    let row;
+    let col;
+    while (status !== -1) {
+      [row, col] = this.#cpuAttackDetermineCoordinates(this.players[1]);
+      
+      status = this.players[1].attack(this.players[0], row, col);
+    }
 
+    switch(status) {
+      case 1: {
+        console.log("CPU scores a hit!");
 
-    
-    player[1].attack(player[0])
+        let originCell = document.querySelector(`.p1.gameboard .selectable [data-row="${row}"] [data-col="${col}"]`)
+        let shipId = originCell.dataset.ship.split("cpu-ship")[1];
 
+        let shipSunk = this.players[0].isShipSunk(shipId);
+        if (shipSunk) {
+          BattleshipElements.setDialog(GAME_STATE.cpuShipSunk);
+        }
+
+        if (this.players[1].cpuFirstSuccessfulHit.row === null) {
+          this.players[1].cpuFirstSuccessfulHit.row = row;
+          this.players[1].cpuFirstSuccessfulHit.col = col;
+          this.players[1].CPU_STATE = CPU_STATE.found;
+        } else if (this.players[1].cpuSecondSuccessfulHit.row === null) {
+          this.players[1].cpuSecondSuccessfulHit.row = row;
+          this.players[1].cpuSecondSuccessfulHit.col = col;
+          this.players[1].CPU_STATE = CPU_STATE.focused;
+        } else {
+          // in focused mode... lay down some attacks.
+          // if a ship was sunk, then reset to random.
+          if (shipSunk) {
+            this.players[1].cpuFirstSuccessfulHit = {row: null, col: null};
+            this.players[1].cpuSecondSuccessfulHit = {row: null, col: null};
+            this.players[1].CPU_STATE = CPU_STATE.random;
+          }
+        }
+
+        break;
+      }
+      case 0:
+        console.log("CPU misses!");
+        break;
+    }
   }
 
   #cpuPlaceShips(player) {
