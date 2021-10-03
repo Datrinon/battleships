@@ -162,4 +162,5 @@ div.ship.ship-placed:hover {
   left: 0;
   color: red;
   visibility: unset;
+  z-index: 100;
 }

@@ -1,5 +1,4 @@
 import { BattleshipElements } from "./BattleshipElement";
-import Gameboard from "./gameboard";
 import { CPU_STATE } from "./player";
 
 /**
@@ -47,7 +46,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(player1, player2, p1start = true, shipLengths = [2]) {
+  constructor(player1, player2, p1start = true, shipLengths = [5]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
@@ -69,12 +68,18 @@ export default class GameManager {
       ship.draggable = false;
     });
 
+    // places ship for cpu.
     this.players.forEach(player => {
       if (player.cpu) {
         this.#cpuPlaceShips(player);
       }
     });
-    
+
+    // register ships for the player.
+    this.#playerRegisterShips();
+
+    // TODO
+    // remove this promise code, effect looks lame.
     (() => {
       return new Promise((resolve) => {
         BattleshipElements.setDialog(GAME_STATE.playing);
@@ -95,15 +100,37 @@ export default class GameManager {
 
       const self = this;
       document.querySelectorAll(".p2.gameboard .attackable").forEach(cell => {
-        cell.addEventListener("click", (e) =>{
-          if (self.p1turn) {
-            self.#playerAttack.call(this, e, self.players[0], self.players[1]);
-            self.#cpuAttack.call(this);
-          }
-          
-        });
+        cell.addEventListener("click", self.#playRound.bind(this));
       })
     })
+  }
+
+  /**
+   * Play a round of battleships, allowing each player to fire.
+   * @param {Event} e : Event; used to pick up the cell the user clicked. Acquires
+   * coordinates from it to attack.
+   */
+  #playRound(e) {
+    if (this.p1turn) {
+      this.#playerFireAttack(e);
+      this.#cpuFireAttack();
+    }
+  }
+
+  #playerRegisterShips() {
+    let self = this;
+    let gameboard = document.querySelector(".p1.gameboard");
+
+    gameboard.querySelectorAll(".ship").forEach(ship => {
+      let originCell = ship.parentNode;
+      let row = parseInt(originCell.dataset.row);
+      let col = parseInt(originCell.dataset.col);
+      let length = ship.childElementCount;
+      let vertical = ship.classList.contains("vertical");
+
+      self.players[0].gameboard.placeShip(length, row, col, vertical);
+    });
+
   }
 
   /**
@@ -114,7 +141,7 @@ export default class GameManager {
    * @param {Player} attacked - The player receiving the attack.
    * @returns 
    */
-  #playerAttack(e, attacker, attacked) {
+  #playerFireAttack(e) {
     if (e.currentTarget.classList.contains("attacked")) {
       console.log("This cell has already been attacked!");
       return;
@@ -126,7 +153,7 @@ export default class GameManager {
     const col = parseInt(e.currentTarget.dataset.col);
 
     console.log(row, col);
-    let result = attacker.attack(attacked, row, col);
+    let result = this.players[0].attack(this.players[1], row, col);
     switch(result) {
       case 1: 
         console.log("It's a hit!");
@@ -145,8 +172,11 @@ export default class GameManager {
 
     switch(cpu.cpuBehavior) {
       case CPU_STATE.random: {
-        row = Math.round(Math.random() * (endIndex));
-        col = Math.round(Math.random() * (endIndex));
+        // row = Math.round(Math.random() * (endIndex));
+        // col = Math.round(Math.random() * (endIndex));
+        // debug
+        row = 0;
+        col = 0;
         break;
       }
       case CPU_STATE.found: {
@@ -207,6 +237,7 @@ export default class GameManager {
               // else it was negative, so it was going down, so we need to go up.
               row = cpu.cpuFirstSuccessfulHit.row - 1;
             }
+            cpu.cpuFocusInvert = false;
           // if at the end, start searching upwards instead.
           } else if (cpu.cpuSecondSuccessfulHit.row === endIndex) { 
             row = cpu.cpuFirstSuccessfulHit.row - 1;
@@ -233,6 +264,7 @@ export default class GameManager {
               // else it was negative, so it was traveling leftwards; we need to go right.
               col = cpu.cpuFirstSuccessfulHit.col - 1;
             }
+            cpu.cpuFocusInvert = false;
           } else if (cpu.cpuSecondSuccessfulHit.col === endIndex) {
             col = cpu.cpuFirstSuccessfulHit.col - 1;
           } else if (cpu.cpuSecondSuccessfulHit.col === 0) {
@@ -245,7 +277,6 @@ export default class GameManager {
 
           row = cpu.cpuSecondSuccessfulHit.row;
         }
-
         break;
       }
     }
@@ -256,7 +287,8 @@ export default class GameManager {
   /**
    * For the CPU to decide on an attack.
    */
-  #cpuAttack() {
+  #cpuFireAttack() {
+    let cpu = this.players[1];
     let status = -1;
     let row;
     let col;
@@ -270,13 +302,12 @@ export default class GameManager {
     attackedCell.classList.add("attacked");
 
     switch(status) {
-      case 1: 
-        let cpu = this.players[1];
+      case 1: {
         console.log("CPU scores a hit!");
 
-        let shipId = attackedCell.dataset.ship.split("cpu-ship")[1];
+        let shipId = attackedCell.dataset.ship.split("player-ship")[1];
 
-        let shipSunk = this.players[0].isShipSunk(shipId);
+        let shipSunk = this.players[0].gameboard.isShipSunk(shipId);
         if (shipSunk) {
           BattleshipElements.setDialog(GAME_STATE.cpuShipSunk);
         }
@@ -312,6 +343,7 @@ export default class GameManager {
           }
         }
         break;
+      }
       case 0:
         console.log("CPU misses!");
         if (cpu.behavior === CPU_STATE.focused) {
