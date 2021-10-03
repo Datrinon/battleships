@@ -52,4 +52,11 @@ export default class Player {
   attack(player, row, col) {
     return player.gameboard.receiveAttack(row, col);
   }
+
+  resetCPUBehaviors() {
+    this.cpuFirstSuccessfulHit = {row: null, col: null};
+    this.cpuSecondSuccessfulHit = {row: null, col: null};
+    this.cpuBehavior = CPU_STATE.random;
+    this.cpuFocusInvert = false;
+  }
 }

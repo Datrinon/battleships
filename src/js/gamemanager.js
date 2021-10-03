@@ -16,7 +16,9 @@ export const GAME_STATE = {
   playing: "Game start!",
   gamePrompt: "Welcome. Drag ships onto gameboard. Click (when placed): Rotate.",
   cpuShipSunk: "A ship of the CPU's was sunk!",
-  playerShipSunk: "A ship of the player's was sunk!"
+  cpuShipHit: "A ship of the CPU's was sunk!",
+  playerShipSunk: "A ship of the player's was sunk!",
+  playerShipHit: "A ship of the player's was hit!!"
 };
 
 
@@ -176,7 +178,7 @@ export default class GameManager {
         // col = Math.round(Math.random() * (endIndex));
         // debug
         row = 0;
-        col = 0;
+        col = 9;
         break;
       }
       case CPU_STATE.found: {
@@ -197,6 +199,7 @@ export default class GameManager {
           } else {
             row = cpu.cpuFirstSuccessfulHit.row + plusMinus;
           }
+          col = cpu.cpuFirstSuccessfulHit.col;
         } else {
           // if the first successful hit was 0 we don't want -1 -- always force it to be +1.
           if (cpu.cpuFirstSuccessfulHit.col === 0) {
@@ -207,6 +210,7 @@ export default class GameManager {
           } else {
             col = cpu.cpuFirstSuccessfulHit.col + plusMinus;
           }
+          row = cpu.cpuFirstSuccessfulHit.row;
         }
         break;
       }
@@ -246,10 +250,10 @@ export default class GameManager {
             row = cpu.cpuFirstSuccessfulHit.row + 1;
           // else we're in the middle, and if that difference is 1, then look upwards.
           } else if (rowDiff > 0) {
-            row = cpu.cpuSecondSuccessfulHit - 1;
+            row = cpu.cpuSecondSuccessfulHit.row - 1;
           // also in the middle, but for difference 1, then look downwards.
           } else if (rowDiff < 0) {
-            row = cpu.cpuSecondSuccessfulHit + 1;
+            row = cpu.cpuSecondSuccessfulHit.row +  1;
           }
           // column is a given -- keep it the same.
           col = cpu.cpuSecondSuccessfulHit.col;
@@ -270,12 +274,13 @@ export default class GameManager {
           } else if (cpu.cpuSecondSuccessfulHit.col === 0) {
             col = cpu.cpuFirstSuccessfulHit.col + 1;
           } else if (colDiff > 0) {
-            col = cpu.cpuSecondSuccessfulHit - 1;
+            col = cpu.cpuSecondSuccessfulHit.col - 1;
           } else if (colDiff < 0) {
-            col = cpu.cpuSecondSuccessfulHit + 1;
+            col = cpu.cpuSecondSuccessfulHit.col + 1;
           }
 
           row = cpu.cpuSecondSuccessfulHit.row;
+          console.log({row, col});
         }
         break;
       }
@@ -288,7 +293,7 @@ export default class GameManager {
    * For the CPU to decide on an attack.
    */
   #cpuFireAttack() {
-    let cpu = this.players[1];
+    let p2 = this.players[1];
     let status = -1;
     let row;
     let col;
@@ -304,51 +309,50 @@ export default class GameManager {
     switch(status) {
       case 1: {
         console.log("CPU scores a hit!");
+        BattleshipElements.setDialog(GAME_STATE.playerShipHit);
 
         let shipId = attackedCell.dataset.ship.split("player-ship")[1];
 
         let shipSunk = this.players[0].gameboard.isShipSunk(shipId);
         if (shipSunk) {
-          BattleshipElements.setDialog(GAME_STATE.cpuShipSunk);
+          console.log("CPU sank that ship!");
+          BattleshipElements.setDialog(GAME_STATE.playerShipSunk);
         }
 
         // The CPU has made its first successful hit against a ship! 
-        if (cpu.behavior === CPU_STATE.random
-          && cpu.cpuFirstSuccessfulHit.row === null
+        if (p2.cpuBehavior === CPU_STATE.random
+          && p2.cpuFirstSuccessfulHit.row === null
         ) {
-          cpu.cpuFirstSuccessfulHit.row = row;
-          cpu.cpuFirstSuccessfulHit.col = col;
-          cpu.behavior = CPU_STATE.found;
+          p2.cpuFirstSuccessfulHit.row = row;
+          p2.cpuFirstSuccessfulHit.col = col;
+          p2.cpuBehavior = CPU_STATE.found;
         // The CPU has made a second successful hit while in found mode!
-        } else if (cpu.behavior === CPU_STATE.found
-          && cpu.cpuSecondSuccessfulHit.row === null
+        } else if (p2.cpuBehavior === CPU_STATE.found
+          && p2.cpuSecondSuccessfulHit.row === null
         ) {
-          cpu.cpuSecondSuccessfulHit.row = row;
-          cpu.cpuSecondSuccessfulHit.col = col;
-          cpu.behavior = CPU_STATE.focused;
+          p2.cpuSecondSuccessfulHit.row = row;
+          p2.cpuSecondSuccessfulHit.col = col;
+          p2.cpuBehavior = CPU_STATE.focused;
         } else {
           // focused mode behaviors -- revert to random whe sunk.
-          if (cpu.behavior === CPU_STATE.focused) {
+          if (p2.cpuBehavior === CPU_STATE.focused) {
             // only keep updating the second hit.
-            cpu.cpuSecondSuccessfulHit.row = row;
-            cpu.cpuSecondSuccessfulHit.col = col;
+            p2.cpuSecondSuccessfulHit.row = row;
+            p2.cpuSecondSuccessfulHit.col = col;
           }
           // in focused mode... lay down some attacks.
           // if a ship was sunk, then reset to random.
           if (shipSunk) {
-            cpu.cpuFirstSuccessfulHit = {row: null, col: null};
-            cpu.cpuSecondSuccessfulHit = {row: null, col: null};
-            cpu.behavior = CPU_STATE.random;
-            cpu.cpuFocusInvert = false;
+            p2.resetCPUBehaviors();
           }
         }
         break;
       }
       case 0:
         console.log("CPU misses!");
-        if (cpu.behavior === CPU_STATE.focused) {
+        if (p2.cpuBehavior === CPU_STATE.focused) {
           console.log("Since CPU was focused, it'll swap directions starting from the first hit.");
-          cpu.cpuFocusInvert = true;
+          p2.cpuFocusInvert = true;
         }
         break;
     }

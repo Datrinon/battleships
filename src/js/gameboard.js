@@ -30,11 +30,18 @@ export default class Gameboard {
    * to be placed.
    */
   placeShip(length, row, col, vertical) {
+    if (row < 0 || col < 0) {
+      throw new Error("Cannot place ship on negative coordinates.");
+    }
     // return null if out of bounds
-    if (row + length > this.grid.length
-      || col + length > this.grid.length
-    ) {
-      return null;
+    if (vertical) { // vertical out of bounds involves row.
+      if (row + length > this.grid.length || col > this.grid.length) {
+        return null;
+      }
+    } else {
+      if (col + length > this.grid.length || row > this.grid.length) {
+        return null;
+      }
     }
     // check to see that the given row and col + length are not already occupied.
     if (vertical) {
@@ -81,6 +88,7 @@ export default class Gameboard {
    * if the hit missed, and -1 if the area was already hit. 
    */
   receiveAttack(row, col) {
+    console.log({row, col});
     if (isNaN(parseInt(row)) || col === undefined) {
       throw new Error("You must provide row and col coordinates as a number.");
     }
@@ -93,6 +101,7 @@ export default class Gameboard {
       this.grid[row][col] = "o";
       return 0;
     } else {
+      console.log(shipId);
       this.grid[row][col] = "x";
       this.ships[shipId].hit(row, col);
 
@@ -105,7 +114,7 @@ export default class Gameboard {
   }
 
   isShipSunk(index) {
-    return this.ships[index].isSunk;
+    return this.ships[index].isSunk();
   }
 
   /**
