@@ -15,7 +15,7 @@ export const GAME_STATE = {
   p2victory: "Player 2 wins.",
   restart: "Restarting game...",
   playing: "Game start!",
-  gamePrompt: "Welcome. Drag ships onto gameboard. Click (when placed): Rotate."
+  gamePrompt: "Welcome. Drag ships onto gameboard. Click (when placed): Rotate.",
   cpuShipSunk: "A ship of the CPU's was sunk!",
   playerShipSunk: "A ship of the player's was sunk!"
 };
@@ -98,6 +98,7 @@ export default class GameManager {
         cell.addEventListener("click", (e) =>{
           if (self.p1turn) {
             self.#playerAttack.call(this, e, self.players[0], self.players[1]);
+            self.#cpuAttack.call(this);
           }
           
         });
@@ -121,8 +122,8 @@ export default class GameManager {
       e.currentTarget.classList.add("attacked");
     }
 
-    const row = e.currentTarget.dataset.row;
-    const col = e.currentTarget.dataset.col;
+    const row = parseInt(e.currentTarget.dataset.row);
+    const col = parseInt(e.currentTarget.dataset.col);
 
     console.log(row, col);
     let result = attacker.attack(attacked, row, col);
@@ -134,7 +135,7 @@ export default class GameManager {
         console.log("It's a miss!");
         break;
     }
-    this.p1turn = !this.p1turn; // invert the turns.
+    this.p1turn = false; // CPU must make a successful move before the player moves again.
   }
 
   #cpuAttackDetermineCoordinates(cpu) {
@@ -202,18 +203,20 @@ export default class GameManager {
     let status = -1;
     let row;
     let col;
-    while (status !== -1) {
+    while (status === -1) {
       [row, col] = this.#cpuAttackDetermineCoordinates(this.players[1]);
       
       status = this.players[1].attack(this.players[0], row, col);
     }
 
+    let attackedCell = document.querySelector(`.p1.gameboard .selectable[data-row="${row}"][data-col="${col}"]`)
+    attackedCell.classList.add("attacked");
+
     switch(status) {
       case 1: {
         console.log("CPU scores a hit!");
 
-        let originCell = document.querySelector(`.p1.gameboard .selectable [data-row="${row}"] [data-col="${col}"]`)
-        let shipId = originCell.dataset.ship.split("cpu-ship")[1];
+        let shipId = attackedCell.dataset.ship.split("cpu-ship")[1];
 
         let shipSunk = this.players[0].isShipSunk(shipId);
         if (shipSunk) {
@@ -237,13 +240,14 @@ export default class GameManager {
             this.players[1].CPU_STATE = CPU_STATE.random;
           }
         }
-
         break;
       }
       case 0:
         console.log("CPU misses!");
         break;
     }
+
+    this.p1turn = true;
   }
 
   #cpuPlaceShips(player) {

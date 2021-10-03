@@ -81,8 +81,8 @@ export default class Gameboard {
    * if the hit missed, and -1 if the area was already hit. 
    */
   receiveAttack(row, col) {
-    if (typeof row !== "number" || col === undefined) {
-      throw new Error("You must provide row and col coordinates.");
+    if (isNaN(parseInt(row)) || col === undefined) {
+      throw new Error("You must provide row and col coordinates as a number.");
     }
 
     let shipId = this.grid[row][col];
