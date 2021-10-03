@@ -24,7 +24,11 @@ export default class Player {
    * There are three states for the CPU to employ: random, found, focused.
    */
   cpuBehavior;
-  cpuFocusDirection;
+  /**
+   * When focused on a target, swaps the direction of attack when set to true.
+   * Used when the CPU identifies a row / col where a ship may be, but gets a miss.
+   */
+  cpuFocusInvert;
   score;
   gameboard;
 
@@ -32,7 +36,7 @@ export default class Player {
     this.name = name;
     this.cpu = isCpu;
     this.cpuBehavior = CPU_STATE.random;
-    this.cpuFocusDirection = null;
+    this.cpuFocusInvert = false;
     this.score = 0;
     this.gameboard = new Gameboard();
   }

@@ -141,54 +141,90 @@ export default class GameManager {
   #cpuAttackDetermineCoordinates(cpu) {
     let row;
     let col; 
+    let endIndex = cpu.gameboard.size - 1;
 
     switch(cpu.cpuBehavior) {
       case CPU_STATE.random: {
-        row = Math.round(Math.random() * (cpu.gameboard.size-1));
-        col = Math.round(Math.random() * (cpu.gameboard.size-1));
+        row = Math.round(Math.random() * (endIndex));
+        col = Math.round(Math.random() * (endIndex));
         break;
       }
       case CPU_STATE.found: {
-        let rowOrCol = Math.round(Math.random());
+        // when found, target proximity of 1 unit radius to the found cell.
+        // that means altering the row XOR column based on the last successful hit.
+        
+        // for deciding whether to pick row or column for adjustment
+        let pickRow = Math.round(Math.random());
+        // for deciding whether to plus or minus.
         let plusMinus = Math.round(Math.random()) === 0 ? 1 : -1;
 
-        if (rowOrCol) {
-          row = cpu.cpuLastSuccessfulHit.row + plusMinus;
+        if (pickRow) {
+          // if the first successful hit was 0 we don't want -1 -- always force it to be +1.
+          if (cpu.cpuFirstSuccessfulHit.row === 0) {
+            row = cpu.cpuFirstSuccessfulHit.row + 1;
+          } else if (cpu.cpuFirstSuccessfulHit.row === endIndex) {
+            row = cpu.cpuFirstSuccessfulHit.row - 1;
+          } else {
+            row = cpu.cpuFirstSuccessfulHit.row + plusMinus;
+          }
         } else {
-          col = cpu.cpuLastSuccessfulHit.col + plusMinus;
+          // if the first successful hit was 0 we don't want -1 -- always force it to be +1.
+          if (cpu.cpuFirstSuccessfulHit.col === 0) {
+            col = cpu.cpuFirstSuccessfulHit.col + 1;
+          // likewise for the areas where the ship is at the edge of the board. Look back.
+          } else if (cpu.cpuFirstSuccessfulHit.col === endIndex) {
+            col = cpu.cpuFirstSuccessfulHit.col - 1;
+          } else {
+            col = cpu.cpuFirstSuccessfulHit.col + plusMinus;
+          }
         }
         break;
       }
       case CPU_STATE.focused: {
-        let rowDiff = cpu.cpuLastSuccessfulHit.row -
-            cpu.cpu2ndLastSuccessfulHit.row;
+        // in a focused mode, the CPU starts traversing in a single direction until
+        // the destruction of the ship is announced, a miss occurs, or it hits a wall.
+
+        // the direction to be traversed depends on the last two successful hits
+        // and the difference between those coordinates.
+        // a rowDiff indicates to look up or down, as the ship is lying vertically.
+        // a colDiff indicates to look left or right, as the ship is lying horizontally.
+
+        let rowDiff = cpu.cpuFirstSuccessfulHit.row -
+            cpu.cpuSecondSuccessfulHit.row;
         
-        let colDiff = cpu.cpuLastSuccessfulHit.col -
-            cpu.cpu2ndLastSuccessfulHit.col;
+        let colDiff = cpu.cpuFirstSuccessfulHit.col -
+            cpu.cpuSecondSuccessfulHit.col;
         
+        // when to look up / down -- there's a row difference
         if (rowDiff) {
-          switch(rowDiff) {
-            case 1: // row difference 1 means move up;
-              row = cpu.cpu2ndLastSuccessfulHit.row + 1;
-              col = cpu.cpu2ndLastSuccessfulHit.col;
-              break;
-            case -1: // row difference -1 means move down.
-              row = cpu.cpu2ndLastSuccessfulHit.row - 1;
-              col = cpu.cpu2ndLastSuccessfulHit.col;
-              break;
+          // if at the end, start searching upwards instead.
+          if (cpu.cpuSecondSuccessfulHit.row === endIndex) { 
+            row = cpu.cpuFirstSuccessfulHit.row - 1;
+          // if at the beginning, start searching downwards.
+          } else if (cpu.cpuSecondSuccessfulHit.row === 0) {
+            row = cpu.cpuFirstSuccessfulHit.row + 1;
+          // else we're in the middle, and if that difference is 1, then look upwards.
+          } else if (rowDiff === 1) {
+            row = cpu.cpuSecondSuccessfulHit - 1;
+          // also in the middle, but for difference 1, then look downwards.
+          } else if (rowDiff === -1) {
+            row = cpu.cpuSecondSuccessfulHit + 1;
           }
-        } else if (colDiff) {
-          switch (colDiff) {
-            case 1: // if 1, move left.
-              row = cpu.cpu2ndLastSuccessfulHit.row;
-              col = cpu.cpu2ndLastSuccessfulHit.col - 1;
-              break;
-            case -1: // if -1, move right.
-              row = cpu.cpu2ndLastSuccessfulHit.row;
-              col = cpu.cpu2ndLastSuccessfulHit.col + 1;
-              break;
+          // column is a given -- keep it the same.
+          col = cpu.cpuSecondSuccessfulHit.col;
+        // else in the case of a column difference, we look left / right.
+        } else { 
+          if (cpu.cpuSecondSuccessfulHit.col === endIndex) {
+            col = cpu.cpuFirstSuccessfulHit.col - 1;
+          } else if (cpu.cpuSecondSuccessfulHit.col === 0) {
+            col = cpu.cpuFirstSuccessfulHit.col + 1;
+          } else if (colDiff === 1) {
+            col = cpu.cpuSecondSuccessfulHit - 1;
+          } else if (colDiff === -1) {
+            col = cpu.cpuSecondSuccessfulHit + 1;
           }
         }
+
         break;
       }
     }
@@ -214,6 +250,7 @@ export default class GameManager {
 
     switch(status) {
       case 1: {
+        let cpu = this.players[1];
         console.log("CPU scores a hit!");
 
         let shipId = attackedCell.dataset.ship.split("cpu-ship")[1];
@@ -223,21 +260,33 @@ export default class GameManager {
           BattleshipElements.setDialog(GAME_STATE.cpuShipSunk);
         }
 
-        if (this.players[1].cpuFirstSuccessfulHit.row === null) {
-          this.players[1].cpuFirstSuccessfulHit.row = row;
-          this.players[1].cpuFirstSuccessfulHit.col = col;
-          this.players[1].CPU_STATE = CPU_STATE.found;
-        } else if (this.players[1].cpuSecondSuccessfulHit.row === null) {
-          this.players[1].cpuSecondSuccessfulHit.row = row;
-          this.players[1].cpuSecondSuccessfulHit.col = col;
-          this.players[1].CPU_STATE = CPU_STATE.focused;
+        // The CPU has made its first successful hit against a ship! 
+        if (cpu.behavior === CPU_STATE.random
+          && cpu.cpuFirstSuccessfulHit.row === null
+        ) {
+          cpu.cpuFirstSuccessfulHit.row = row;
+          cpu.cpuFirstSuccessfulHit.col = col;
+          cpu.behavior = CPU_STATE.found;
+        // The CPU has made a second successful hit while in found mode!
+        } else if (cpu.behavior === CPU_STATE.found
+          && cpu.cpuSecondSuccessfulHit.row === null
+        ) {
+          cpu.cpuSecondSuccessfulHit.row = row;
+          cpu.cpuSecondSuccessfulHit.col = col;
+          cpu.behavior = CPU_STATE.focused;
+        } else if (cpu.behavior === CPU_STATE.focused) {
+          // update the successful hits
+          cpu.cpuFirstSuccessfulHit = cpu.cpuSecondSuccessfulHit;
+          // update the successful hits
+          cpu.cpuSecondSuccessfulHit.row = row;
+          cpu.cpuSecondSuccessfulHit.col = col;
         } else {
           // in focused mode... lay down some attacks.
           // if a ship was sunk, then reset to random.
           if (shipSunk) {
-            this.players[1].cpuFirstSuccessfulHit = {row: null, col: null};
-            this.players[1].cpuSecondSuccessfulHit = {row: null, col: null};
-            this.players[1].CPU_STATE = CPU_STATE.random;
+            cpu.cpuFirstSuccessfulHit = {row: null, col: null};
+            cpu.cpuSecondSuccessfulHit = {row: null, col: null};
+            cpu.behavior = CPU_STATE.random;
           }
         }
         break;
