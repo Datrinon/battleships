@@ -174,11 +174,8 @@ export default class GameManager {
 
     switch(cpu.cpuBehavior) {
       case CPU_STATE.random: {
-        // row = Math.round(Math.random() * (endIndex));
-        // col = Math.round(Math.random() * (endIndex));
-        // debug
-        row = 0;
-        col = 9;
+        row = Math.round(Math.random() * (endIndex));
+        col = Math.round(Math.random() * (endIndex));
         break;
       }
       case CPU_STATE.found: {
