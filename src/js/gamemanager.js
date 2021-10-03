@@ -197,32 +197,53 @@ export default class GameManager {
         
         // when to look up / down -- there's a row difference
         if (rowDiff) {
+          // for when the focus needs to be inverted (miss or hit a grid barrier)
+          if (cpu.cpuFocusInvert) {
+            // get the direction the cpu was traveling in previously; if positive, then it was going up.
+            // we need to go down by adding.
+            if (rowDiff > 0) {
+              row = cpu.cpuFirstSuccessfulHit.row + 1;
+            } else {
+              // else it was negative, so it was going down, so we need to go up.
+              row = cpu.cpuFirstSuccessfulHit.row - 1;
+            }
           // if at the end, start searching upwards instead.
-          if (cpu.cpuSecondSuccessfulHit.row === endIndex) { 
+          } else if (cpu.cpuSecondSuccessfulHit.row === endIndex) { 
             row = cpu.cpuFirstSuccessfulHit.row - 1;
           // if at the beginning, start searching downwards.
           } else if (cpu.cpuSecondSuccessfulHit.row === 0) {
             row = cpu.cpuFirstSuccessfulHit.row + 1;
           // else we're in the middle, and if that difference is 1, then look upwards.
-          } else if (rowDiff === 1) {
+          } else if (rowDiff > 0) {
             row = cpu.cpuSecondSuccessfulHit - 1;
           // also in the middle, but for difference 1, then look downwards.
-          } else if (rowDiff === -1) {
+          } else if (rowDiff < 0) {
             row = cpu.cpuSecondSuccessfulHit + 1;
           }
           // column is a given -- keep it the same.
           col = cpu.cpuSecondSuccessfulHit.col;
         // else in the case of a column difference, we look left / right.
         } else { 
-          if (cpu.cpuSecondSuccessfulHit.col === endIndex) {
+          if (cpu.cpuFocusInvert) {
+            // get the direction the cpu was traveling in previously; if positive, then it was going up.
+            // we need to go down by adding.
+            if (colDiff > 0) {
+              col = cpu.cpuFirstSuccessfulHit.col + 1;
+            } else {
+              // else it was negative, so it was traveling leftwards; we need to go right.
+              col = cpu.cpuFirstSuccessfulHit.col - 1;
+            }
+          } else if (cpu.cpuSecondSuccessfulHit.col === endIndex) {
             col = cpu.cpuFirstSuccessfulHit.col - 1;
           } else if (cpu.cpuSecondSuccessfulHit.col === 0) {
             col = cpu.cpuFirstSuccessfulHit.col + 1;
-          } else if (colDiff === 1) {
+          } else if (colDiff > 0) {
             col = cpu.cpuSecondSuccessfulHit - 1;
-          } else if (colDiff === -1) {
+          } else if (colDiff < 0) {
             col = cpu.cpuSecondSuccessfulHit + 1;
           }
+
+          row = cpu.cpuSecondSuccessfulHit.row;
         }
 
         break;
@@ -249,7 +270,7 @@ export default class GameManager {
     attackedCell.classList.add("attacked");
 
     switch(status) {
-      case 1: {
+      case 1: 
         let cpu = this.players[1];
         console.log("CPU scores a hit!");
 
@@ -274,25 +295,29 @@ export default class GameManager {
           cpu.cpuSecondSuccessfulHit.row = row;
           cpu.cpuSecondSuccessfulHit.col = col;
           cpu.behavior = CPU_STATE.focused;
-        } else if (cpu.behavior === CPU_STATE.focused) {
-          // update the successful hits
-          cpu.cpuFirstSuccessfulHit = cpu.cpuSecondSuccessfulHit;
-          // update the successful hits
-          cpu.cpuSecondSuccessfulHit.row = row;
-          cpu.cpuSecondSuccessfulHit.col = col;
         } else {
+          // focused mode behaviors -- revert to random whe sunk.
+          if (cpu.behavior === CPU_STATE.focused) {
+            // only keep updating the second hit.
+            cpu.cpuSecondSuccessfulHit.row = row;
+            cpu.cpuSecondSuccessfulHit.col = col;
+          }
           // in focused mode... lay down some attacks.
           // if a ship was sunk, then reset to random.
           if (shipSunk) {
             cpu.cpuFirstSuccessfulHit = {row: null, col: null};
             cpu.cpuSecondSuccessfulHit = {row: null, col: null};
             cpu.behavior = CPU_STATE.random;
+            cpu.cpuFocusInvert = false;
           }
         }
         break;
-      }
       case 0:
         console.log("CPU misses!");
+        if (cpu.behavior === CPU_STATE.focused) {
+          console.log("Since CPU was focused, it'll swap directions starting from the first hit.");
+          cpu.cpuFocusInvert = true;
+        }
         break;
     }
 
