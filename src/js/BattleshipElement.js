@@ -129,7 +129,7 @@ import Utility from "./utility";
    * regenerate draggable ships within ship selection.
    * @param {HTMLElement} - Container which the draggable ships should be placed.
    */
-  generateDraggableShips(container) {
+  static generateDraggableShips(container) {
     this.gameManager.shipLengths.forEach((shipLen, index) => {
       let ship = component.div("ship", "draggable");
       ship.id = `player-ship${index}`;
@@ -308,21 +308,6 @@ import Utility from "./utility";
         self.#allowPlacedShipRotation();
       });
 
-      // code to return ship to inventory
-      this.#gameContainer.querySelector(".ship-placer")
-        .addEventListener("dragover", (e) => {
-          e.preventDefault();
-        });
-
-      this.#gameContainer.querySelector(".ship-placer")
-        .addEventListener("drop", (e) => {
-
-          e.preventDefault();
-
-          const id = e.dataTransfer.getData("text/plain");
-          document.querySelector(`#${id}`).classList.remove("ship-placed");
-          e.target.append();
-        });
     });
   }
 

@@ -1,5 +1,5 @@
 import { BattleshipElements } from "./BattleshipElement";
-import { CPU_STATE } from "./player";
+import Player, { CPU_STATE } from "./player";
 
 /**
  * Manages a game session for battleship. Keeps track of players.
@@ -188,8 +188,26 @@ export default class GameManager {
     return `${hits}/${totalShots} (${accuracy.toFixed(2)}%)`;
   }
 
+  /**
+   * Resets the game by:
+   * - Removing all ships from the gameboard
+   * - Remarking all cells on the gameboards and removing data ship from them.
+   * - Recreating player instances.
+   * - Recreating draggable ships.
+   * - Allowing the user to start the game again.
+   */
   #resetGame() {
-    
+    document.querySelectorAll(".ship").forEach(ship => ship.remove());
+    document.querySelectorAll(".selectable").forEach(cell => {
+      cell.className = "cell selectable";
+      cell.dataset.ship = "";
+    });
+
+    document.querySelector("#p1-name").value = this.players[0].name;
+
+    this.players[0] = new Player(this.players[0].name, false);
+    this.players[1] = new Player(this.players[1].name, true);
+
   }
 
   /**
