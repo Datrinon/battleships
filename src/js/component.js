@@ -218,6 +218,19 @@ class Component {
     return p;
   }
 
+  a(text, link, ...className) {
+    let a = document.createElement("a");
+    if (className.length != 0) {
+      a.classList.add(...className);
+    }
+
+    a.textContent = text;
+    a.href = link;
+    a.target = "_blank";
+
+    return a;
+  }
+
   img(url, ...className) {
     let image = new Image();
     image.classList.add(...className);
