@@ -1,6 +1,4 @@
 //js 
-import component from "./component";
-import Utility from "./utility";
 import { BattleshipElements } from "./BattleshipElement";
 import { GAME_STATE } from "./gamemanager";
 import GameManager from "./gamemanager";
@@ -22,9 +20,10 @@ import "../css/index.css";
   const header = page.header();
   const gameArea = page.gameArea();
 
-  body.append(header,gameArea);
+  body.append(header, gameArea);
   
-  BattleshipElements.setDialog(GAME_STATE.gamePrompt);
+  game.attachPage(page);
+  page.setDialog(GAME_STATE.gamePrompt);
 })();
 
 /*

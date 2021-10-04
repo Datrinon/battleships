@@ -109,7 +109,7 @@ import Utility from "./utility";
    * gamemanager GAME_STATE object.
    * @param {} message 
    */
-  static setDialog(message) {
+  setDialog(message) {
     document.querySelector(".dialog-msg").textContent = message;
   }
 
@@ -305,13 +305,6 @@ import Utility from "./utility";
       // it'll just be recreated by valid-drag.
       cell.addEventListener("dragleave", self.#removeDragGuide);
       cell.addEventListener("drop", self.#placeShipOnDrop.bind(self));
-    });
-  }
-
-  addShipDragHandlers() {
-    this.#gameContainer.querySelectorAll(".draggable").forEach(ship => {
-      ship.addEventListener("dragstart", this.#shipOnDragStart.bind(this));
-      ship.addEventListener("dragend", this.#shipOnDragEnd.bind(this));
     });
   }
 

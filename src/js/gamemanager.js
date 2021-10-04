@@ -53,6 +53,12 @@ export default class GameManager {
   #isWinnerP1;
 
   /**
+   * Instance of a BattleshipElements class to use to manipulate the view of the page.
+   * @type {BattleshipElements}
+   */
+  #page;
+
+  /**
    * Create an instance of the game. Assigns CPU as player 2.
    * @param {Player[]} players - An array of the players in the game.
    * @param {boolean} p1start - Should player 1 start first? True by default.
@@ -94,7 +100,7 @@ export default class GameManager {
     // remove this promise code, effect looks lame.
     (() => {
       return new Promise((resolve) => {
-        BattleshipElements.setDialog(GAME_STATE.playing);
+        this.#page.setDialog(GAME_STATE.playing);
         setTimeout(() => {
           if (GameManager.#instance.p1turn) {
             return resolve(GAME_STATE.p1turn);
@@ -104,7 +110,7 @@ export default class GameManager {
           }, 750);
       });
     })().then((result) => {
-      BattleshipElements.setDialog(result);
+      this.#page.setDialog(result);
       document.querySelector(".gameboard-area").classList.add("game-active");
       document.querySelectorAll(".selectable").forEach(cell => {
         cell.classList.add("attackable");
@@ -125,10 +131,10 @@ export default class GameManager {
     const p2victory = this.players[0].gameboard.allShipsSunk();
     
     if (p1victory) {
-      BattleshipElements.setDialog(GAME_STATE.p1victory);
+      this.#page.setDialog(GAME_STATE.p1victory);
       this.#isWinnerP1 = true;
     } else if (p2victory) {
-      BattleshipElements.setDialog(GAME_STATE.p2victory);
+      this.#page.setDialog(GAME_STATE.p2victory);
       this.#isWinnerP1 = false;
     }
 
@@ -155,7 +161,7 @@ export default class GameManager {
     p1AccMetric.textContent = this.#calculateAccuracy(this.players[1]);
     p2AccMetric.textContent = this.#calculateAccuracy(this.players[0]);
 
-    // 3. [removed damage metrics]
+    // 3. ////[removed damage metrics]
     // Instead of showing damage taken, when the game is over,
     // just show the enemy's gameboard.
     // TODO
@@ -415,14 +421,14 @@ export default class GameManager {
     switch(status) {
       case 1: {
         console.log("CPU scores a hit!");
-        BattleshipElements.setDialog(GAME_STATE.playerShipHit);
+        this.#page.setDialog(GAME_STATE.playerShipHit);
 
         let shipId = attackedCell.dataset.ship.split("player-ship")[1];
 
         let shipSunk = this.players[0].gameboard.isShipSunk(shipId);
         if (shipSunk) {
           console.log("CPU sank that ship!");
-          BattleshipElements.setDialog(GAME_STATE.playerShipSunk);
+          this.#page.setDialog(GAME_STATE.playerShipSunk);
         }
 
         // The CPU has made its first successful hit against a ship! 
@@ -483,5 +489,13 @@ export default class GameManager {
 
       BattleshipElements.placeShipViaCoordinate(length, row, col, vertical, true, `cpu-ship${index}`);
     });
+  }
+
+  /**
+   * Attach an instance of BattleShipElements to control the view of the page.
+   * @param {BattleshipElements} page 
+   */
+  attachPage(page) {
+    this.#page = page;
   }
 }
