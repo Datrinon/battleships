@@ -29,7 +29,7 @@ export default class GameManager {
   /**
    * The players involved in the game.
    */
-  players;
+  #players;
 
   /**
    * Is it player 1's turn? 
@@ -40,8 +40,18 @@ export default class GameManager {
    * An array of the lengths of each ship that the player will have in their arsenal.
    * @type {number[]}
    */
-  shipLengths;
+  #shipLengths;
+
+  /**
+   * Has the game ended yet?
+   */
+  #gameOver;
   
+  /**
+   * True if player 1 won, false if player 2 won.
+   */
+  #isWinnerP1;
+
   /**
    * Create an instance of the game. Assigns CPU as player 2.
    * @param {Player[]} players - An array of the players in the game.
@@ -54,9 +64,9 @@ export default class GameManager {
     } 
 
     GameManager.#instance = this;
-    this.players = player2.cpu ? [player1, player2] : [player2, player1];
+    this.#players = player2.cpu ? [player1, player2] : [player2, player1];
     this.#p1turn = p1start;
-    this.shipLengths = shipLengths;
+    this.#shipLengths = shipLengths;
   }
 
   /**
@@ -71,7 +81,7 @@ export default class GameManager {
     });
 
     // places ship for cpu.
-    this.players.forEach(player => {
+    this.#players.forEach(player => {
       if (player.cpu) {
         this.#cpuPlaceShips(player);
       }
@@ -111,26 +121,73 @@ export default class GameManager {
    * Queries both players' gameboards to see if the game should be ended.
    */
   #determineIfGameOver() {
-    const p1victory = this.players[1].gameboard.allShipsSunk();
-    const p2victory = this.players[0].gameboard.allShipsSunk();
+    const p1victory = this.#players[1].gameboard.allShipsSunk();
+    const p2victory = this.#players[0].gameboard.allShipsSunk();
     
     if (p1victory) {
       BattleshipElements.setDialog(GAME_STATE.p1victory);
+      this.#isWinnerP1 = true;
     } else if (p2victory) {
       BattleshipElements.setDialog(GAME_STATE.p2victory);
+      this.#isWinnerP1 = false;
     }
 
     if (p1victory || p2victory) {
+      this.#gameOver = true;
       this.#endGame();
     }
   }
 
   #endGame() {
-    // disable all cells
-    document.querySelectorAll(".attackable").forEach(cell => {
-      cell.onclick = null;
+    // update game results here.
+    const summaryContainer = document.querySelector(".summary-screen");
+    // 1. Show the winner.
+    if (this.#isWinnerP1) {
+      summaryContainer.querySelector(".winner").textContent = this.#players[0].name;
+    } else {
+      summaryContainer.querySelector(".winner").textContent = this.#players[1].name;
+    }
+
+    // 2. Show the accuracy metrics.
+    const p1AccMetric = summaryContainer.querySelector(".p1-accuracy-metric");
+    const p2AccMetric = summaryContainer.querySelector(".p2-accuracy-metric");
+
+    p1AccMetric.textContent = this.#calculateAccuracy(this.#players[0]);
+    p2AccMetric.textContent = this.#calculateAccuracy(this.#players[1]);
+
+    // 3. [removed damage metrics]
+    // Instead of showing damage taken, when the game is over,
+    // just show the enemy's gameboard.
+    // TODO
+    // When debugging is complete, test out hiding battleships from the view.
+    summaryContainer.querySelector(".play-again")
+        .addEventListener("click", this.#resetGame);
+  }
+
+  /**
+   * Calculate the accuracy, given the player.
+   * @returns {string} Total shots / hits and the accuracy of it.
+   */
+  #calculateAccuracy(player) {
+    let totalShots = 0;
+    let hits = 0;
+    player.gameboard.grid.forEach(row => {
+      row.forEach(cell => {
+        if (cell === "x" || cell === "o") {
+          totalShots += 1; 
+          if (cell === "x") {
+            hits += 1;
+          }
+        }
+      })
     });
-    // update statistics here.
+
+    const accuracy = (hits / totalShots) * 100;
+    return `${hits}/${totalShots} (${accuracy.toFixed(2)}%)`;
+  }
+
+  #resetGame() {
+
   }
 
   /**
@@ -139,7 +196,7 @@ export default class GameManager {
    * coordinates from it to attack.
    */
   #playRound(e) {
-    if (this.#p1turn) {
+    if (this.#p1turn && !this.#gameOver) {
       this.#playerFireAttack(e);
       if (this.#p1turn === false) {
         this.#cpuFireAttack();
@@ -158,7 +215,7 @@ export default class GameManager {
       let length = ship.childElementCount;
       let vertical = ship.classList.contains("vertical");
 
-      self.players[0].gameboard.placeShip(length, row, col, vertical);
+      self.#players[0].gameboard.placeShip(length, row, col, vertical);
     });
 
   }
@@ -183,7 +240,7 @@ export default class GameManager {
     const col = parseInt(e.currentTarget.dataset.col);
 
     console.log(row, col);
-    let result = this.players[0].attack(this.players[1], row, col);
+    let result = this.#players[0].attack(this.#players[1], row, col);
     switch(result) {
       case 1: 
         console.log("It's a hit!");
@@ -320,14 +377,14 @@ export default class GameManager {
    * For the CPU to decide on an attack.
    */
   #cpuFireAttack() {
-    let p2 = this.players[1];
+    let p2 = this.#players[1];
     let status = -1;
     let row;
     let col;
     while (status === -1) {
-      [row, col] = this.#cpuAttackDetermineCoordinates(this.players[1]);
+      [row, col] = this.#cpuAttackDetermineCoordinates(this.#players[1]);
       
-      status = this.players[1].attack(this.players[0], row, col);
+      status = this.#players[1].attack(this.#players[0], row, col);
     }
 
     let attackedCell = document.querySelector(`.p1.gameboard .selectable[data-row="${row}"][data-col="${col}"]`)
@@ -340,7 +397,7 @@ export default class GameManager {
 
         let shipId = attackedCell.dataset.ship.split("player-ship")[1];
 
-        let shipSunk = this.players[0].gameboard.isShipSunk(shipId);
+        let shipSunk = this.#players[0].gameboard.isShipSunk(shipId);
         if (shipSunk) {
           console.log("CPU sank that ship!");
           BattleshipElements.setDialog(GAME_STATE.playerShipSunk);
@@ -389,7 +446,7 @@ export default class GameManager {
   }
 
   #cpuPlaceShips(player) {
-    this.shipLengths.forEach((length, index) => {
+    this.#shipLengths.forEach((length, index) => {
       let status = null;
       let row;
       let col;

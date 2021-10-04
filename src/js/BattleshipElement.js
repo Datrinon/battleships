@@ -534,9 +534,6 @@ import Utility from "./utility";
     const statsAccuracy = component.p("Accuracy: ", "accuracy");
     const p1Accuracy = component.span("--%", "p1-accuracy-metric");
     const p2Accuracy = component.span("--%", "p2-accuracy-metric");
-    const statsDamage = component.p("Damage taken: ", "hurt");
-    const p1Damage = component.span("--%", "p1-damage-metric");
-    const p2Damage = component.span("--%", "p2-damage-metric");
 
     const playAgain = component.button("Play Again", "play-again");
 
