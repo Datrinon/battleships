@@ -481,7 +481,7 @@ export default class GameManager {
         status = player.gameboard.placeShip(length, row, col, vertical);
       }
 
-      BattleshipElements.placeShipManually(length, row, col, vertical, true, `cpu-ship${index}`);
+      BattleshipElements.placeShipViaCoordinate(length, row, col, vertical, true, `cpu-ship${index}`);
     });
   }
 }

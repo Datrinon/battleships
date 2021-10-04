@@ -9,6 +9,8 @@ import Utility from "./utility";
   #dialogHolder;
   #gameContainer;
   gameManager;
+  #currentDraggedShipId;
+  #currentDraggedLength;
 
   constructor(gameManager) {
     this.gameManager = gameManager;
@@ -36,8 +38,8 @@ import Utility from "./utility";
     controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
     controlDialogContainer.append(this.#startGamePrompt());
 
-    this.generateDraggableShips(controlDialogContainer.querySelector(".ship-selection"));
-    this.#enableDraggingAndRotation();
+    this.generateDraggableShips();
+    this.#enableDragAndDropOnCell();
 
     controlDialogContainer.append(this.#summary());
 
@@ -126,10 +128,10 @@ import Utility from "./utility";
   }
 
   /** 
-   * regenerate draggable ships within ship selection.
-   * @param {HTMLElement} - Container which the draggable ships should be placed.
+   * Regenerate draggable ships within .ship-selection.
    */
-  static generateDraggableShips(container) {
+  generateDraggableShips() {
+    const container = this.#gameContainer.querySelector(".ship-selection")
     this.gameManager.shipLengths.forEach((shipLen, index) => {
       let ship = component.div("ship", "draggable");
       ship.id = `player-ship${index}`;
@@ -139,8 +141,149 @@ import Utility from "./utility";
         ship.append(cell);
       }
 
+      ship.addEventListener("dragstart", this.#shipOnDragStart.bind(this));
+      ship.addEventListener("dragend", this.#shipOnDragEnd.bind(this));
+
       container.append(ship);
     })
+  }
+
+  /**
+   * Display drop guides when a ship is being dragged over a gameboard.
+   * @param {Event} e - drag over event.
+   */
+  #displayDropGuides(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    let hoverCell = Utility.getMatchingParent(e.target, ".selectable");
+
+    document.querySelector(`#${this.#currentDraggedShipId}`).classList.add("no-display");
+
+    if (document.querySelector(`#${this.#currentDraggedShipId}`).classList.contains("vertical")) {
+      // apply vertical guide.
+      let col = hoverCell.dataset.col;
+      let cellsCol = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
+      let index = cellsCol.indexOf(hoverCell);
+
+      if (index + this.#currentDraggedLength <= cellsCol.length) {
+        for (let i = index; i < index + this.#currentDraggedLength; i++) {
+          // not a valid placement.
+          if (cellsCol[i].classList.contains("occupied")
+            && cellsCol[i].dataset.ship !== this.#currentDraggedShipId) {
+            this.#removeDragGuide();
+            return;
+          }
+          cellsCol[i].classList.add("valid-drag");
+        }
+      }
+    } else {
+      // apply horizontal guide
+      let row = hoverCell.dataset.row;
+      let cellsRow = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+      let index = cellsRow.indexOf(hoverCell);
+
+      console.log("hovering over index: " + index);
+
+      if (index + this.#currentDraggedLength <= cellsRow.length) {
+        for (let i = index; i < index + this.#currentDraggedLength; i++) {
+          // not a valid placement.
+          if (cellsRow[i].classList.contains("occupied")
+            && cellsRow[i].dataset.ship !== this.#currentDraggedShipId) {
+            this.#removeDragGuide();
+            return;
+          }
+
+          cellsRow[i].classList.add("valid-drag");
+          // console.log({index, currentDraggedLength, i});
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove drag guide.
+   */
+  #removeDragGuide() {
+    document.querySelectorAll(".p1.gameboard .selectable")
+    .forEach(cell => {
+      cell.classList.remove("valid-drag");
+    });
+  }
+
+  /**
+   * After the user drops the ship, places the ship.
+   * @param {Event} e - Drop event.
+   * @returns 
+   */
+  #placeShipOnDrop(e) {
+    document.querySelector(`#${this.#currentDraggedShipId}`).classList.remove("no-display");
+    // only when the area is a valid-drag do we add it in. otherwise, nope.
+    if (!e.target.classList.contains("valid-drag")) {
+      return;
+    }
+
+    e.preventDefault();
+    this.#removeDragGuide();
+
+    const id = e.dataTransfer.getData("text/plain");
+
+    // before moving the ship, determine if it has been placed already... 
+    // this is true if the ship is inside a selectable cell.
+    let lastPlacedLocation = document.querySelector(`.selectable #${id}`);
+
+    // if so we need to remove occupied from such cells.
+    if (lastPlacedLocation !== null) {
+      let cells;
+      let vertical = lastPlacedLocation.classList.contains("vertical");
+
+      // parentNode is the cell.
+      lastPlacedLocation = lastPlacedLocation.parentNode;
+
+      if (vertical) {
+        let col = lastPlacedLocation.dataset.col;
+        cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
+      } else {
+        // remove occupied marking from those cells.
+        let row = lastPlacedLocation.dataset.row;
+        cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+      }
+
+      let index = cells.indexOf(lastPlacedLocation);
+
+      // color the subsequent cells.
+      for (let i = index; i < index + this.#currentDraggedLength; i++) {
+        cells[i].classList.remove("occupied");
+        cells[i].dataset.ship = "";
+      }
+    }
+
+    let placedCell = e.target;
+    // move the ship
+    document.querySelector(`#${id}`).classList.add("ship-placed");
+    placedCell.append(document.querySelector(`#${id}`));
+
+    let vertical = document.querySelector(`#${id}`).classList.contains("vertical");
+    let cells;
+
+    if (vertical) {
+      let col = placedCell.dataset.col;
+      cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
+    } else {
+      // get the row, index, and place thereafter of the placed cell.
+      let row = placedCell.dataset.row;
+      cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
+    }
+
+    let index = cells.indexOf(placedCell);
+
+    // color the subsequent cells.
+    for (let i = index; i < index + this.#currentDraggedLength; i++) {
+      cells[i].classList.add("occupied");
+      cells[i].dataset.ship = id;
+    }
+
+    // allow the ship to be rotated.
+    this.#allowPlacedShipRotation();
   }
 
   /**
@@ -150,167 +293,44 @@ import Utility from "./utility";
    * the ships are the draggables, and the drop zones are all the cells of 
    * player 1's gameboard.
    */
-  #enableDraggingAndRotation() {
-    const removeDragGuide = () => {
-      document.querySelectorAll(".p1.gameboard .selectable")
-        .forEach(cell => {
-          cell.classList.remove("valid-drag");
-        });
-    }
-
-    let currentDraggedLength;
-    let currentDraggedShipId;
-    let self = this;
-
-    this.#gameContainer.querySelectorAll(".draggable").forEach(ship => {
-      ship.addEventListener("dragstart", (e) => {
-        e.dataTransfer.dropEffect = "move";
-        e.dataTransfer.setData("text/plain", e.target.id);
-
-        currentDraggedLength = e.target.childElementCount;
-        currentDraggedShipId = e.target.id ?? e.target.dataset.ship;
-        // blank image
-        let img = new Image();
-        e.dataTransfer.setDragImage(img, 0, 0);
-      });
-
-      ship.addEventListener("dragend", () => {
-        document.querySelector(`#${currentDraggedShipId}`).classList.remove("no-display");
-      });
-    });
+  #enableDragAndDropOnCell() {
+    const self = this;
+    // this.addShipDragHandlers();
 
     // all cells that are selectable are droppable areas.
     this.#gameContainer.querySelectorAll(".p1.gameboard .selectable").forEach(cell => {
 
-      cell.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        let hoverCell = Utility.getMatchingParent(e.target, ".selectable");
-
-        document.querySelector(`#${currentDraggedShipId}`).classList.add("no-display");
-
-        if (document.querySelector(`#${currentDraggedShipId}`).classList.contains("vertical")) {
-          // apply vertical guide.
-          let col = hoverCell.dataset.col;
-          let cellsCol = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
-          let index = cellsCol.indexOf(hoverCell);
-
-          if (index + currentDraggedLength <= cellsCol.length) {
-            for (let i = index; i < index + currentDraggedLength; i++) {
-              // not a valid placement.
-              if (cellsCol[i].classList.contains("occupied")
-                && cellsCol[i].dataset.ship !== currentDraggedShipId) {
-                removeDragGuide();
-                return;
-              }
-              cellsCol[i].classList.add("valid-drag");
-            }
-          }
-        } else {
-          // apply horizontal guide
-          let row = hoverCell.dataset.row;
-          let cellsRow = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
-          let index = cellsRow.indexOf(hoverCell);
-
-          console.log("hovering over index: " + index);
-
-          if (index + currentDraggedLength <= cellsRow.length) {
-            for (let i = index; i < index + currentDraggedLength; i++) {
-              // not a valid placement.
-              if (cellsRow[i].classList.contains("occupied")
-                && cellsRow[i].dataset.ship !== currentDraggedShipId) {
-                console.log("Firah!");
-                removeDragGuide();
-                return;
-              }
-
-              cellsRow[i].classList.add("valid-drag");
-              // console.log({index, currentDraggedLength, i});
-            }
-          }
-        }
-
-
-      });
-
+      cell.addEventListener("dragover", self.#displayDropGuides.bind(self));
       // when the drag element leaves droppable zone, remove all valid drag
       // it'll just be recreated by valid-drag.
-      cell.addEventListener("dragleave", removeDragGuide);
-
-      cell.addEventListener("drop", (e) => {
-        document.querySelector(`#${currentDraggedShipId}`).classList.remove("no-display");
-        // only when the area is a valid-drag do we add it in. otherwise, nope.
-        if (!e.target.classList.contains("valid-drag")) {
-          return;
-        }
-
-        e.preventDefault();
-        removeDragGuide();
-
-        const id = e.dataTransfer.getData("text/plain");
-
-        // before moving the ship, determine if it has been placed already... 
-        // this is true if the ship is inside a selectable cell.
-        let lastPlacedLocation = document.querySelector(`.selectable #${id}`);
-
-        // if so we need to remove occupied from such cells.
-        if (lastPlacedLocation !== null) {
-          let cells;
-          let vertical = lastPlacedLocation.classList.contains("vertical");
-
-          // parentNode is the cell.
-          lastPlacedLocation = lastPlacedLocation.parentNode;
-
-          if (vertical) {
-            let col = lastPlacedLocation.dataset.col;
-            cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
-          } else {
-            // remove occupied marking from those cells.
-            let row = lastPlacedLocation.dataset.row;
-            cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
-          }
-
-          let index = cells.indexOf(lastPlacedLocation);
-
-          // color the subsequent cells.
-          for (let i = index; i < index + currentDraggedLength; i++) {
-            cells[i].classList.remove("occupied");
-            cells[i].dataset.ship = "";
-          }
-        }
-
-        let placedCell = e.target;
-        // move the ship
-        document.querySelector(`#${id}`).classList.add("ship-placed");
-        placedCell.append(document.querySelector(`#${id}`));
-
-        let vertical = document.querySelector(`#${id}`).classList.contains("vertical");
-        let cells;
-
-        if (vertical) {
-          let col = placedCell.dataset.col;
-          cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-col="${col}"]`));
-        } else {
-          // get the row, index, and place thereafter of the placed cell.
-          let row = placedCell.dataset.row;
-          cells = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
-        }
-
-        let index = cells.indexOf(placedCell);
-
-        // color the subsequent cells.
-        for (let i = index; i < index + currentDraggedLength; i++) {
-          cells[i].classList.add("occupied");
-          cells[i].dataset.ship = id;
-        }
-
-        // allow the ship to be rotated.
-        self.#allowPlacedShipRotation();
-      });
-
+      cell.addEventListener("dragleave", self.#removeDragGuide);
+      cell.addEventListener("drop", self.#placeShipOnDrop.bind(self));
     });
   }
 
+  addShipDragHandlers() {
+    this.#gameContainer.querySelectorAll(".draggable").forEach(ship => {
+      ship.addEventListener("dragstart", this.#shipOnDragStart.bind(this));
+      ship.addEventListener("dragend", this.#shipOnDragEnd.bind(this));
+    });
+  }
+
+  #shipOnDragStart(e) {
+    e.dataTransfer.dropEffect = "move";
+    e.dataTransfer.setData("text/plain", e.target.id);
+
+    this.#currentDraggedLength = e.target.childElementCount;
+    this.#currentDraggedShipId = e.target.id ?? e.target.dataset.ship;
+    // blank image
+    let img = new Image();
+    e.dataTransfer.setDragImage(img, 0, 0);
+  }
+
+  #shipOnDragEnd() {
+    document.querySelector(`#${this.#currentDraggedShipId}`)
+        .classList.remove("no-display");
+  }
+  
   /**
    * Allows for ships to be rotated; this is invoked each time a ship is placed,
    * to allow ships, on the gameboard, to be rotated.
@@ -412,7 +432,7 @@ import Utility from "./utility";
    * @param {boolean} player2 - Place ships on player 2's gameboard?
    * @param {string} id - the ID the ship should be identified by.
    */
-  static placeShipManually(length, row, col, vertical, player2 = true, id) {
+  static placeShipViaCoordinate(length, row, col, vertical, player2 = true, id) {
     console.log({length, row, col, vertical, player2, id});
     let selector;
     let gameboard; 
