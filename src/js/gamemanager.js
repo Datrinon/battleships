@@ -34,7 +34,7 @@ export default class GameManager {
   /**
    * Is it player 1's turn? 
    */
-  p1turn;
+  #p1turn;
 
   /**
    * An array of the lengths of each ship that the player will have in their arsenal.
@@ -55,7 +55,7 @@ export default class GameManager {
 
     GameManager.#instance = this;
     this.players = player2.cpu ? [player1, player2] : [player2, player1];
-    this.p1turn = p1start;
+    this.#p1turn = p1start;
     this.shipLengths = shipLengths;
   }
 
@@ -108,14 +108,42 @@ export default class GameManager {
   }
 
   /**
+   * Queries both players' gameboards to see if the game should be ended.
+   */
+  #determineIfGameOver() {
+    const p1victory = this.players[1].gameboard.allShipsSunk();
+    const p2victory = this.players[0].gameboard.allShipsSunk();
+    
+    if (p1victory) {
+      BattleshipElements.setDialog(GAME_STATE.p1victory);
+    } else if (p2victory) {
+      BattleshipElements.setDialog(GAME_STATE.p2victory);
+    }
+
+    if (p1victory || p2victory) {
+      this.#endGame();
+    }
+  }
+
+  #endGame() {
+    // disable all cells
+    document.querySelectorAll(".attackable").forEach(cell => {
+      cell.onclick = null;
+    });
+    // update statistics here.
+  }
+
+  /**
    * Play a round of battleships, allowing each player to fire.
    * @param {Event} e : Event; used to pick up the cell the user clicked. Acquires
    * coordinates from it to attack.
    */
   #playRound(e) {
-    if (this.p1turn) {
+    if (this.#p1turn) {
       this.#playerFireAttack(e);
-      this.#cpuFireAttack();
+      if (this.#p1turn === false) {
+        this.#cpuFireAttack();
+      }
     }
   }
 
@@ -164,7 +192,9 @@ export default class GameManager {
         console.log("It's a miss!");
         break;
     }
-    this.p1turn = false; // CPU must make a successful move before the player moves again.
+    this.#p1turn = false; // CPU must make a successful move before the player moves again.
+
+    this.#determineIfGameOver();
   }
 
   #cpuAttackDetermineCoordinates(cpu) {
@@ -354,7 +384,8 @@ export default class GameManager {
         break;
     }
 
-    this.p1turn = true;
+    this.#p1turn = true;
+    this.#determineIfGameOver();
   }
 
   #cpuPlaceShips(player) {
