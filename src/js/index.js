@@ -3,13 +3,26 @@ import { BattleshipElements } from "./BattleshipElement";
 import { GAME_STATE } from "./gamemanager";
 import GameManager from "./gamemanager";
 import Player from "./player";
+import Utility from "./utility";
+import component from "./component";
 
 //css
 import "../css/reset.css";
-import "../css/index.css";
+import "../css/game.css";
+import "../css/page.css";
+
+//images
+import gh from "../images/gh.png";
 
 (function main() {
   const body = document.body;
+
+  const main = Utility.createElement("main", "content");
+  const footer = Utility.createElement("footer", "footer");
+  const githubLink = component.a("View on GitHub.", "#", "gh-link");
+  const githubIcon = component.img("https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", "gh-icon");
+
+  body.append(main, footer);
 
   const p1 = new Player("Commander Blue", false);
   const p2 = new Player("Commander Red", true);
@@ -20,10 +33,11 @@ import "../css/index.css";
   const header = page.header();
   const gameArea = page.gameArea();
 
-  body.append(header, gameArea);
+  main.append(header, gameArea);
   
   game.attachPage(page);
   page.setDialog(GAME_STATE.gamePrompt);
+  footer.append(githubLink, githubIcon);
 })();
 
 /*

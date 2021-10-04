@@ -199,7 +199,7 @@ class Component {
     }
     let header = document.createElement(`h${level}`);
 
-    if (className !== null) {
+    if (className.length !== 0) {
       header.classList.add(...className);
     }
     header.textContent = text;

@@ -1,6 +1,8 @@
 import component from "./component";
 import Utility from "./utility";
 
+import logo from '../images/battleship.png';
+
 /**
  * Creates elements for Battleship.
  */
@@ -17,13 +19,17 @@ import Utility from "./utility";
   }
 
   header() {
+    const heading = Utility.createElement("header", "header");
     const titleContainer = component.div("title-container");
-    const titleLabel = component.heading("Battleships", 1);
-    const authorLabel = component.p("by Dan T.", 2);
+    const titleLabel = component.heading("Battleships", 1, "title");
+    const titleIcon = component.img(logo, "logo-pic");
+    const authorLabel = component.a("by Dan T.", "#", "author-link");
 
-    titleContainer.append(titleLabel, authorLabel);
+    titleContainer.append(titleLabel, titleIcon);
 
-    return titleContainer;
+    heading.append(titleContainer, authorLabel);
+
+    return heading;
   }
 
   gameArea() {
