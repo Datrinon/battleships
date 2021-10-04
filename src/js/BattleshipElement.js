@@ -36,6 +36,7 @@ import Utility from "./utility";
     controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
     controlDialogContainer.append(this.#startGamePrompt());
 
+    this.generateDraggableShips(controlDialogContainer.querySelector(".ship-selection"));
     this.#enableDraggingAndRotation();
 
     controlDialogContainer.append(this.#summary());
@@ -119,6 +120,16 @@ import Utility from "./utility";
     let header = component.heading("Select Ship", 3);
     let selection = component.div("ship-selection");
 
+    shipInventory.append(header, selection);
+
+    return shipInventory;
+  }
+
+  /** 
+   * regenerate draggable ships within ship selection.
+   * @param {HTMLElement} - Container which the draggable ships should be placed.
+   */
+  generateDraggableShips(container) {
     this.gameManager.shipLengths.forEach((shipLen, index) => {
       let ship = component.div("ship", "draggable");
       ship.id = `player-ship${index}`;
@@ -128,12 +139,8 @@ import Utility from "./utility";
         ship.append(cell);
       }
 
-      selection.append(ship);
+      container.append(ship);
     })
-
-    shipInventory.append(header, selection);
-
-    return shipInventory;
   }
 
   /**
@@ -540,8 +547,7 @@ import Utility from "./utility";
     victoryMsg.append(winner);
 
     statsContainer.append(statsHeading,
-      statsAccuracy, p1Accuracy, p2Accuracy,
-      statsDamage, p1Damage, p2Damage);
+      statsAccuracy, p1Accuracy, p2Accuracy);
 
     summary.append(victoryMsg, winner, statsContainer, playAgain);
       
