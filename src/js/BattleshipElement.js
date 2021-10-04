@@ -182,7 +182,7 @@ import Utility from "./utility";
       let cellsRow = Array.from(document.querySelectorAll(`.p1.gameboard [data-row="${row}"]`));
       let index = cellsRow.indexOf(hoverCell);
 
-      console.log("hovering over index: " + index);
+      // console.log("hovering over index: " + index);
 
       if (index + this.#currentDraggedLength <= cellsRow.length) {
         for (let i = index; i < index + this.#currentDraggedLength; i++) {

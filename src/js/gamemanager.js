@@ -81,6 +81,8 @@ export default class GameManager {
    * Makes all cells "attackable."
    */
   startGame() {
+    document.querySelector(".start-game-button").disabled = true;
+
     document.querySelectorAll(".ship").forEach(ship => {
       ship.onclick = null;
       ship.draggable = false;
@@ -144,6 +146,7 @@ export default class GameManager {
     }
   }
 
+  
   #endGame() {
     // update game results here.
     const summaryContainer = document.querySelector(".summary-screen");
@@ -167,7 +170,7 @@ export default class GameManager {
     // TODO
     // When debugging is complete, test out hiding battleships from the view.
     summaryContainer.querySelector(".play-again")
-        .addEventListener("click", this.#resetGame);
+        .addEventListener("click", this.#resetGame.bind(this));
   }
 
   /**
@@ -196,24 +199,28 @@ export default class GameManager {
 
   /**
    * Resets the game by:
-   * - Removing all ships from the gameboard
-   * - Remarking all cells on the gameboards and removing data ship from them.
+   * - Remarking all cells.
+   * - Removing all ships from the gameboard.
    * - Recreating player instances.
-   * - Recreating draggable ships.
+   * - Recreating draggable ships in the selection area.
    * - Allowing the user to start the game again.
    */
   #resetGame() {
-    document.querySelectorAll(".ship").forEach(ship => ship.remove());
     document.querySelectorAll(".selectable").forEach(cell => {
       cell.className = "cell selectable";
       cell.dataset.ship = "";
     });
-
+    document.querySelectorAll(".ship").forEach(ship => ship.remove());
     document.querySelector("#p1-name").value = this.players[0].name;
 
     this.players[0] = new Player(this.players[0].name, false);
     this.players[1] = new Player(this.players[1].name, true);
 
+    this.#page.generateDraggableShips();
+
+    document.querySelector(".start-game-button").disabled = false;
+    this.#gameOver = false;
+    this.#p1turn = true;
   }
 
   /**
