@@ -169,6 +169,7 @@ div.ship.draggable:hover::after {
   margin: 0 auto;
   text-align: center;
   text-shadow: 2px 1px 6px rgb(100, 100, 100);
+  min-height: 75px;
 }
 
 .dialog-area .dialog-msg {
@@ -237,7 +238,7 @@ div.ship.draggable:hover::after {
   }
 }
 
-.start-game-button:hover {
+.start-game-button:not([disabled]):hover {
   background-color: rgb(255, 231, 185);
 }
 

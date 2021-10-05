@@ -1,4 +1,5 @@
 import { BattleshipElements } from "./BattleshipElement";
+import component from "./component";
 import Player, { CPU_STATE } from "./player";
 
 /**
@@ -9,7 +10,7 @@ import Player, { CPU_STATE } from "./player";
 export const GAME_STATE = {
   p1turn: "Player 1's turn",
   p2turn: "Player 2's turn",
-  ended: "Game ended.",
+  ended: "Game Over.",
   p1victory: "Player 1 wins.",
   p2victory: "Player 2 wins.",
   restart: "Restarting game...",
@@ -19,11 +20,13 @@ export const GAME_STATE = {
   cpuShipSunk: "A ship of the CPU's was sunk!",
   cpuShipHit: "A ship of the CPU's was sunk!",
   playerShipSunk: "A ship of the player's was sunk!",
-  playerShipHit: "A ship of the player's was hit!!"
+  playerShipHit: "A ship of the player's was hit!!",
+  alreadyAttacked: "This cell was already attacked"
 };
 
 export const SUBDIALOGS = {
   p1turn: "Click on the opponent gameboard to fire a shot.",
+  p2turn: "Thinking..."
 }
 
 
@@ -89,6 +92,14 @@ export default class GameManager {
     document.querySelectorAll(".controls-area, .menu-area, .p2.gameboard")
         .forEach(area => area.classList.toggle("no-display")); 
 
+    this.players[0].name = document.querySelector("#p1-name").value;
+
+    document.querySelector(".p1.gameboard .gameboard-owner").textContent =
+        this.players[0].name + " (You)";
+    document.querySelector(".p2.gameboard .gameboard-owner").textContent =
+        this.players[1].name;
+
+
     document.querySelector(".start-game-button").disabled = true;
 
     document.querySelectorAll(".ship").forEach(ship => {
@@ -117,11 +128,15 @@ export default class GameManager {
           } else {
             return resolve(GAME_STATE.p2turn);
           }
-          }, 750);
+          }, 0);
       });
     })().then((result) => {
       this.#page.setDialog(result);
-      this.#page.setSubDialog(SUBDIALOGS.p1turn);
+      if (this.#p1turn) {
+        this.#page.setSubDialog(SUBDIALOGS.p1turn);
+      } else {
+        this.#page.setSubDialog(SUBDIALOGS.p2turn);
+      }
       document.querySelector(".gameboard-area").classList.add("game-active");
       document.querySelectorAll(".selectable").forEach(cell => {
         cell.classList.add("attackable");
@@ -157,8 +172,17 @@ export default class GameManager {
 
   
   #endGame() {
+    // reveal cpu ships
+    document.querySelectorAll(".cpu-ship-placed").forEach(cell => {
+      cell.classList.add("cpu-ship-reveal");
+    })
+
+    this.#page.setDialog(GAME_STATE.ended);
+    this.#page.setSubDialog("");
     // update game results here.
-    const summaryContainer = document.querySelector(".summary-screen");
+    const summaryContainer = document.querySelector(".summary-area");
+
+    summaryContainer.classList.remove("no-display");
     // 1. Show the winner.
     if (this.#isWinnerP1) {
       summaryContainer.querySelector(".winner").textContent = this.players[0].name;
@@ -238,11 +262,24 @@ export default class GameManager {
    * coordinates from it to attack.
    */
   #playRound(e) {
+    const thinkTimer = Math.round(Math.random() * 500) + 800;
+    const performCPUAttack = () => {
+      this.#cpuFireAttack();
+      if (!this.#gameOver) {
+        this.#page.setDialog(GAME_STATE.p1turn);
+        this.#page.setSubDialog(SUBDIALOGS.p1turn);
+      }
+    }
+
     if (this.#p1turn && !this.#gameOver) {
       this.#playerFireAttack(e);
       if (this.#p1turn === false) {
-        this.#cpuFireAttack();
+        this.#page.setDialog(GAME_STATE.p2turn);
+        this.#page.setSubDialog(SUBDIALOGS.p2turn);
+
+        setTimeout(performCPUAttack.bind(this), thinkTimer);
       }
+
     }
   }
 
@@ -441,14 +478,18 @@ export default class GameManager {
         console.log("CPU scores a hit!");
         attackedCell.classList.add("hit");
 
-        this.#page.setDialog(GAME_STATE.playerShipHit);
+        // this.#page.setDialog(GAME_STATE.playerShipHit);
+        // TODO
+        // replace with a toast.
 
         let shipId = attackedCell.dataset.ship.split("player-ship")[1];
 
         let shipSunk = this.players[0].gameboard.isShipSunk(shipId);
         if (shipSunk) {
           console.log("CPU sank that ship!");
-          this.#page.setDialog(GAME_STATE.playerShipSunk);
+          // TODO
+          // replace with a toast appearing below the game area.
+          // this.#page.setDialog(GAME_STATE.playerShipSunk);
         }
 
         // The CPU has made its first successful hit against a ship! 

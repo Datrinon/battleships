@@ -38,8 +38,9 @@ import { setName } from "./ship";
     const gameboardContainer = component.div("gameboard-area");
     const dialogContainer = component.div("dialog-area");
     const menuArea = component.div("menu-area");
+    const summaryArea = component.div("summary-area", "no-display");
 
-    this.#gameContainer.append(dialogContainer, gameboardContainer, menuArea);
+    this.#gameContainer.append(dialogContainer, gameboardContainer, menuArea, summaryArea);
 
     gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2", "no-display"));
 
@@ -51,7 +52,7 @@ import { setName } from "./ship";
     this.generateDraggableShips();
     this.#enableDragAndDropOnCell();
 
-    menuArea.append(this.#summary("no-display"));
+    summaryArea.append(this.#summary());
 
     return this.#gameContainer;
   }
@@ -528,7 +529,7 @@ import { setName } from "./ship";
     const [playerNameLabel, playerNameField] = component.formInput("Name: ", "input", "p1-name", "p1-name");
     const startGameButton = component.button("Start Game!", "start-game-button");
 
-    playerNameField.value = "Commander";
+    playerNameField.value = "Commander Blue";
     playerNameField.required = true;
     playerNameField.placeholder = "Enter your name here";
 
