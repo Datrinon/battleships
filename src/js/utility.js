@@ -116,6 +116,9 @@ export default class Utility {
    * @param {HTMLElementNode} parent - Parent node containing children.
    */
   static removeAllChildren(parent) {
+    if (parent.childElementCount === 0) {
+      return;
+    }
     while(parent.firstChild) {
       parent.removeChild(parent.firstChild);
     }

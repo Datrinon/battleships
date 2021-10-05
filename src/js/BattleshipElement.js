@@ -3,7 +3,7 @@ import Utility from "./utility";
 
 import logo from '../images/battleship.png';
 import { GAME_STATE } from "./gamemanager";
-
+import { setName } from "./ship";
 /**
  * Creates elements for Battleship.
  */
@@ -37,21 +37,21 @@ import { GAME_STATE } from "./gamemanager";
     this.#gameContainer = component.div("game-area");
     const gameboardContainer = component.div("gameboard-area");
     const dialogContainer = component.div("dialog-area");
-    const controlContainer = component.div("controls-area");
+    const menuArea = component.div("menu-area");
 
-    this.#gameContainer.append(dialogContainer, gameboardContainer, controlContainer);
+    this.#gameContainer.append(dialogContainer, gameboardContainer, menuArea);
 
     gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2", "no-display"));
 
     dialogContainer.append(this.#dialog());
 
-    controlContainer.append(this.#shipPlacement());
-    controlContainer.append(this.#startGamePrompt());
+    menuArea.append(this.#shipPlacement());
+    menuArea.append(this.#startGamePrompt());
 
     this.generateDraggableShips();
     this.#enableDragAndDropOnCell();
 
-    controlContainer.append(this.#summary("no-display"));
+    menuArea.append(this.#summary("no-display"));
 
     return this.#gameContainer;
   }
@@ -110,13 +110,9 @@ import { GAME_STATE } from "./gamemanager";
   #dialog() {
     let dialogContainer = component.div("dialog");
     let dialogMsg = component.p(GAME_STATE.welcomePrompt, "dialog-msg");
-    let controlHelp = component.p("Drag and drop ships onto the gameboard.", "controls-help");
-    let controlHelp2 = component.p("Click (when placed) to rotate ship.", "controls-help");
+    let subDialog = component.div("subdialog-area");
     
-    dialogContainer.append(dialogMsg, controlHelp, controlHelp2);
-
-
-    
+    dialogContainer.append(dialogMsg, subDialog);
 
     this.#dialogHolder = dialogContainer;
 
@@ -129,7 +125,24 @@ import { GAME_STATE } from "./gamemanager";
    * @param {} message 
    */
   setDialog(message) {
-    document.querySelector(".dialog-msg").textContent = message;
+    let msg = document.querySelector(".dialog-msg");
+    msg.textContent = message;
+    Utility.triggerAnimation(msg, "appear-from-bottom");
+  }
+
+  /**
+   * Set subdialog in the dialog area.
+   * @param  {string[]} messages 
+   */
+  setSubDialog(...messages) {
+    const sda = document.querySelector(".subdialog-area");
+    Utility.removeAllChildren(sda);
+
+    messages.forEach(msg => {
+      let p = component.p(msg, "subdialog-message");
+      document.querySelector(".subdialog-area").append(p);
+      Utility.triggerAnimation(p, "appear-from-right");
+    });
   }
 
   /**
@@ -162,6 +175,8 @@ import { GAME_STATE } from "./gamemanager";
 
       ship.addEventListener("dragstart", this.#shipOnDragStart.bind(this));
       ship.addEventListener("dragend", this.#shipOnDragEnd.bind(this));
+
+      ship.dataset.name = setName(shipLen);
 
       container.append(ship);
     })

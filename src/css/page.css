@@ -11,6 +11,8 @@ body {
   background: linear-gradient(353deg, rgb(11 35 56 / 89%), rgb(94 207 219 / 54%) 55.71%),
   linear-gradient(265deg, rgb(238 8 26 / 90%), rgb(18 38 88 / 73%) 70.71%),
   linear-gradient(142deg, rgb(133 131 205 / 83%), rgb(49 82 103 / 77%) 70.71%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .content {
@@ -63,8 +65,16 @@ body {
   width: 64px;
 }
 
+.gameboard-grid {
+  box-shadow: 3px 3px 16px 4px #45434394;
+}
+
 .p1 .gameboard-grid {
   border: 2px solid black;
+}
+
+.p1 .gameboard-grid > .cell {
+  background-color: rgb(2 12 32 / 73%);
 }
 
 .p2 .gameboard-grid {
@@ -75,8 +85,9 @@ body {
   border: 1px solid rgb(25,79,131);
 }
 
-.p2.gameboard .cell {
+.p2.gameboard .cell:not(.cpu-ship-placed) {
   border: 1px solid rgb(131, 25, 25);
+  background-color: rgba(32, 2, 2, 0.72);
 }
 
 .gameboard-owner {
@@ -88,6 +99,7 @@ body {
 }
 
 .ship {
+  position: relative;
   border: 1px solid black;
 }
 
@@ -107,7 +119,7 @@ div.ship-placed.vertical div.cell {
 }
 
 
-.ship-placed {
+div.ship-placed {
   top: -2px;
   left: -2px;
   background-color: #189dd1;
@@ -118,9 +130,31 @@ div.ship.draggable:hover {
   border: 1px solid orange;
 }
 
+div.ship.draggable:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%; 
+  left: 15px;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: black black transparent transparent;
+}
+
+div.ship.draggable:hover::after {
+  position: absolute;
+  content: attr(data-name);
+  font-variant-caps: all-small-caps;
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: rgb(45,45,45);
+  padding: 3px;
+  color: beige;
+  bottom: calc(100% + 5px);
+}
+
 .cell.numbering .number-label {
-  display: inline-block;
-  margin: 6px 5px;
+  margin: 6px auto;
   font-family: monospace;
   font-size: 110%;
   width: fit-content;
@@ -147,7 +181,7 @@ div.ship.draggable:hover {
   line-height: .25in;
 }
 
-.controls-area {
+.menu-area {
   width: 290px;
   margin: 0 auto;
 }
@@ -166,9 +200,6 @@ div.ship.draggable:hover {
   margin-top: 5px;
 }
 
-.ship.draggable {
-  background-color: #2c97fc;
-}
 
 #p1-name {
   all: unset;
@@ -191,4 +222,59 @@ div.ship.draggable:hover {
 
 .start-game-button:disabled {
   background-color: grey;
+}
+
+.subdialog-area {
+  /* animation: pull-open 1.25s; */
+}
+
+@keyframes pull-open {
+  from {
+    transform: scaleY(0.1);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.start-game-button:hover {
+  background-color: rgb(255, 231, 185);
+}
+
+.start-game-button:active {
+  background-color: rgb(204, 154, 62);
+}
+
+.appear-from-bottom {
+  animation: appear-from-bottom 0.75s ease-in;
+}
+
+.appear-from-right {
+  animation: appear-from-right 1s ease-out;
+}
+
+@keyframes appear-from-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes appear-from-right {
+  0% {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  30% {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

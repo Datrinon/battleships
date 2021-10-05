@@ -35,6 +35,8 @@ import "../css/page.css";
   
   game.attachPage(page);
   page.setDialog(GAME_STATE.welcomePrompt);
+  page.setSubDialog("Drag and drop ships onto the gameboard.",
+      "Click (when placed) to rotate ship.");
   footer.append(githubLink, githubIcon);
 })();
 

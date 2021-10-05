@@ -1,4 +1,4 @@
-function setName(length) {
+export function setName(length) {
   switch(length) {
     case 1:
       return "Speeder";

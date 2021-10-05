@@ -14,13 +14,17 @@ export const GAME_STATE = {
   p2victory: "Player 2 wins.",
   restart: "Restarting game...",
   playing: "Game start!",
-  welcomePrompt: "Welcome!",
+  welcomePrompt: "Welcome, Commander.",
   replayPrompt: "Place your ships on the gameboard.",
   cpuShipSunk: "A ship of the CPU's was sunk!",
   cpuShipHit: "A ship of the CPU's was sunk!",
   playerShipSunk: "A ship of the player's was sunk!",
   playerShipHit: "A ship of the player's was hit!!"
 };
+
+export const SUBDIALOGS = {
+  p1turn: "Click on the opponent gameboard to fire a shot.",
+}
 
 
 export default class GameManager {
@@ -65,7 +69,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(player1, player2, p1start = true, shipLengths = [2, 3, 3, 4, 5]) {
+  constructor(player1, player2, p1start = true, shipLengths = [2]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
@@ -82,6 +86,9 @@ export default class GameManager {
    * Makes all cells "attackable."
    */
   startGame() {
+    document.querySelectorAll(".controls-area, .menu-area, .p2.gameboard")
+        .forEach(area => area.classList.toggle("no-display")); 
+
     document.querySelector(".start-game-button").disabled = true;
 
     document.querySelectorAll(".ship").forEach(ship => {
@@ -105,7 +112,7 @@ export default class GameManager {
       return new Promise((resolve) => {
         this.#page.setDialog(GAME_STATE.playing);
         setTimeout(() => {
-          if (GameManager.#instance.p1turn) {
+          if (GameManager.#instance.#p1turn) {
             return resolve(GAME_STATE.p1turn);
           } else {
             return resolve(GAME_STATE.p2turn);
@@ -114,6 +121,7 @@ export default class GameManager {
       });
     })().then((result) => {
       this.#page.setDialog(result);
+      this.#page.setSubDialog(SUBDIALOGS.p1turn);
       document.querySelector(".gameboard-area").classList.add("game-active");
       document.querySelectorAll(".selectable").forEach(cell => {
         cell.classList.add("attackable");

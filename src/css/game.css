@@ -55,9 +55,12 @@
 
 .ship.draggable {
   width:fit-content;
-  background-color: cyan;
   display: flex;
   flex-direction: row;
+}
+
+.ship.draggable .cell {
+  background-color: #2c97fc;
 }
 
 .draggable {
@@ -65,8 +68,8 @@
 }
 
 .valid-drag {
-  border: 1px solid rgb(0, 255, 55);
-  background-color: rgba(0, 255, 64, 0.3);
+  border: 1px solid rgb(0, 255, 55) !important;
+  background-color: rgba(0, 255, 64, 0.3) !important;
 }
 
 div.ship.ship-placed {
@@ -80,9 +83,6 @@ div.ship.ship-placed:hover {
 
 .occupied {
   background-color: rgb(222, 238, 252);
-}
-
-.occupied:hover {
 }
 
 .ship.draggable.vertical {
@@ -122,10 +122,6 @@ div.ship.ship-placed:hover {
 
 .cell-transparent {
   border: 1px solid transparent;
-}
-
-.ship-placed .cell {
-  /* border: 1px solid rgba(27, 102, 71, 0.3); */
 }
 
 .gameboard-area {
