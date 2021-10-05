@@ -8,9 +8,9 @@ body {
   flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   color: white;
-  background: linear-gradient(353deg, rgb(8 21 61 / 89%), rgb(165 222 228 / 50%) 55.71%),
-  linear-gradient(266deg, rgb(23 31 30 / 80%), rgb(94 151 151 / 73%) 70.71%),
-  linear-gradient(142deg, rgb(16 13 138 / 80%), rgb(0 0 255 / 60%) 70.71%);
+  background: linear-gradient(353deg, rgb(11 35 56 / 89%), rgb(94 207 219 / 54%) 55.71%),
+  linear-gradient(265deg, rgb(238 8 26 / 90%), rgb(18 38 88 / 73%) 70.71%),
+  linear-gradient(142deg, rgb(133 131 205 / 83%), rgb(49 82 103 / 77%) 70.71%);
 }
 
 .content {
@@ -38,19 +38,25 @@ body {
 }
 
 .header {
-  text-align: center;
+  font-family: "Poppins";
+  text-shadow: 4px 2px 2px #00000045;
+  margin-left: 15px;  
 }
 
 .title-container {
   display: flex;
   flex-direction: row;
   align-items:center;
-  justify-content: center;
 }
 
 .title {
-  font-size: 200%;  
-  font-family: "Poppins";
+  font-size: 225%;  
+}
+
+.author {
+  width: fit-content;
+  position: relative;
+  left: 66px;
 }
 
 .logo-pic {
@@ -85,8 +91,12 @@ body {
   border: 1px solid black;
 }
 
+div.ship.draggable {
+  transition: all 0.3s ease-out;
+}
+
 div.ship.draggable div.cell {
-  border: 3px outset #189dd1;
+  border: 3px outset #1964c4;
   width: 19.7px;
   height: 19.1px;
 }
@@ -103,10 +113,9 @@ div.ship-placed.vertical div.cell {
   background-color: #189dd1;
 }
 
-div.ship.ship-placed:hover {
+div.ship.draggable:hover {
   box-shadow: 0px 0px 10px rgba(184, 233, 255, 0.562);
   border: 1px solid orange;
-  background-color: rgba(184,233,255,0.562);
 }
 
 .cell.numbering .number-label {
@@ -115,4 +124,71 @@ div.ship.ship-placed:hover {
   font-family: monospace;
   font-size: 110%;
   width: fit-content;
+}
+
+.game-area {
+  margin: 15px auto;
+}
+
+.dialog-area {
+  width: 400px;
+  margin: 0 auto;
+  text-align: center;
+  text-shadow: 2px 1px 6px rgb(100, 100, 100);
+}
+
+.dialog-area .dialog-msg {
+  font-size: 165%;
+  margin-bottom: 15px;
+}
+
+.dialog-area .controls-help {
+  font-size: 0.9rem;
+  line-height: .25in;
+}
+
+.controls-area {
+  width: 290px;
+  margin: 0 auto;
+}
+
+.ship-selection > * {
+  margin: 5px 0;
+}
+
+.ship-placer {
+  min-height: 200px;
+}
+
+.ship-placer-label, .start-game-prompt > [for="p1-name"] {
+  font-variant-caps: all-petite-caps;
+  font-size: 1.1rem;
+  margin-top: 5px;
+}
+
+.ship.draggable {
+  background-color: #2c97fc;
+}
+
+#p1-name {
+  all: unset;
+  margin: 5px 0;
+  margin-left: 5px;
+  border-bottom: 1px solid white;
+  width: 75%;
+}
+
+.start-game-button {
+  font-family: "Poppins";
+  font-size: 1.05rem;
+  width: 100%;
+  padding: 5px;
+  border-radius: 5px;
+  border: none;
+  background-color: rgb(255, 215, 140);
+  transition: all 0.5s ease-out;
+}
+
+.start-game-button:disabled {
+  background-color: grey;
 }

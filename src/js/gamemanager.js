@@ -14,7 +14,8 @@ export const GAME_STATE = {
   p2victory: "Player 2 wins.",
   restart: "Restarting game...",
   playing: "Game start!",
-  gamePrompt: "Welcome. Drag ships onto gameboard. Click (when placed): Rotate.",
+  welcomePrompt: "Welcome!",
+  replayPrompt: "Place your ships on the gameboard.",
   cpuShipSunk: "A ship of the CPU's was sunk!",
   cpuShipHit: "A ship of the CPU's was sunk!",
   playerShipSunk: "A ship of the player's was sunk!",
@@ -64,7 +65,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(player1, player2, p1start = true, shipLengths = [5]) {
+  constructor(player1, player2, p1start = true, shipLengths = [2, 3, 3, 4, 5]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 

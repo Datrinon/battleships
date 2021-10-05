@@ -240,9 +240,11 @@ class Component {
     return image;
   }
 
-  div(...className) {
+  div(...classNames) {
     let div = document.createElement("div");
-    div.classList.add(...className);
+    if (classNames.length !== 0) {
+      div.classList.add(...classNames);
+    }
 
     return div;
   }

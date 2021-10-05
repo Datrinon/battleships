@@ -2,6 +2,7 @@ import component from "./component";
 import Utility from "./utility";
 
 import logo from '../images/battleship.png';
+import { GAME_STATE } from "./gamemanager";
 
 /**
  * Creates elements for Battleship.
@@ -23,9 +24,9 @@ import logo from '../images/battleship.png';
     const titleContainer = component.div("title-container");
     const titleLabel = component.heading("Battleships", 1, "title");
     const titleIcon = component.img(logo, "logo-pic");
-    const authorLabel = component.a("by Dan T.", "#", "author-link");
+    const authorLabel = component.p("by Dan T.", "author");
 
-    titleContainer.append(titleLabel, titleIcon);
+    titleContainer.append(titleIcon, titleLabel);
 
     heading.append(titleContainer, authorLabel);
 
@@ -35,19 +36,22 @@ import logo from '../images/battleship.png';
   gameArea() {
     this.#gameContainer = component.div("game-area");
     const gameboardContainer = component.div("gameboard-area");
-    const controlDialogContainer = component.div("controls-area");
+    const dialogContainer = component.div("dialog-area");
+    const controlContainer = component.div("controls-area");
 
-    this.#gameContainer.append(gameboardContainer, controlDialogContainer);
+    this.#gameContainer.append(dialogContainer, gameboardContainer, controlContainer);
 
-    gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2"));
+    gameboardContainer.append(this.#gameboard("Player", "p1"), this.#gameboard("CPU", "p2", "no-display"));
 
-    controlDialogContainer.append(this.#dialog(), this.#shipPlacement());
-    controlDialogContainer.append(this.#startGamePrompt());
+    dialogContainer.append(this.#dialog());
+
+    controlContainer.append(this.#shipPlacement());
+    controlContainer.append(this.#startGamePrompt());
 
     this.generateDraggableShips();
     this.#enableDragAndDropOnCell();
 
-    controlDialogContainer.append(this.#summary());
+    controlContainer.append(this.#summary("no-display"));
 
     return this.#gameContainer;
   }
@@ -56,10 +60,12 @@ import logo from '../images/battleship.png';
    * Generates a clickable grid based on the game manager's gameboard size.
    * @param {string} playerName : the name of the player; used as a class name to 
    * identify the gameboard.
-   * @param {string} className : Additional class names to identify the gameboard by.
+   * @param {string[]} classNames : Additional class names to identify the gameboard by.
    */
-  #gameboard(playerName, className) {
-    const gameboard = component.div("gameboard", className);
+  #gameboard(playerName, ...classNames) {
+    console.log(classNames);
+    console.log(...classNames);
+    const gameboard = component.div("gameboard", ...classNames);
     const gameboardGrid = component.div("gameboard-grid");
 
     const gridSize = this.gameManager.players[0].gameboard.size;
@@ -103,8 +109,14 @@ import logo from '../images/battleship.png';
    */
   #dialog() {
     let dialogContainer = component.div("dialog");
-    let dialogMsg = component.p("Welcome.", "dialog-msg");
-    dialogContainer.append(dialogMsg);
+    let dialogMsg = component.p(GAME_STATE.welcomePrompt, "dialog-msg");
+    let controlHelp = component.p("Drag and drop ships onto the gameboard.", "controls-help");
+    let controlHelp2 = component.p("Click (when placed) to rotate ship.", "controls-help");
+    
+    dialogContainer.append(dialogMsg, controlHelp, controlHelp2);
+
+
+    
 
     this.#dialogHolder = dialogContainer;
 
@@ -126,7 +138,7 @@ import logo from '../images/battleship.png';
   #shipPlacement() {
     let shipInventory = component.div("ship-placer");
 
-    let header = component.heading("Select Ship", 3);
+    let header = component.heading("Your Armada:", 3, "ship-placer-label");
     let selection = component.div("ship-selection");
 
     shipInventory.append(header, selection);
@@ -498,14 +510,14 @@ import logo from '../images/battleship.png';
   #startGamePrompt() {
     const self = this;
     const startGameForm = Utility.createElement("form", "start-game-prompt");
-    const [playerNameLabel, playerNameField] = component.formInput("Name", "input", "p1-name", "p1-name");
+    const [playerNameLabel, playerNameField] = component.formInput("Name: ", "input", "p1-name", "p1-name");
     const startGameButton = component.button("Start Game!", "start-game-button");
-    const errorField = component.p("Error Field Here", "form-error-field");
 
     playerNameField.value = "Commander";
     playerNameField.required = true;
+    playerNameField.placeholder = "Enter your name here";
 
-    startGameForm.append(playerNameLabel, playerNameField, startGameButton, errorField);
+    startGameForm.append(playerNameLabel, playerNameField, startGameButton);
 
     startGameButton.disabled = true;
 
@@ -536,8 +548,8 @@ import logo from '../images/battleship.png';
   /**
    * Shows a summary. To be used after the game has finished.
    */
-  #summary() {
-    const summary = component.div("summary-screen");
+  #summary(...classNames) {
+    const summary = component.div("summary-screen", ...classNames);
     const victoryMsg = component.p(`Game Over! Winner: `, "victory-message");
     const winner = component.span("%", "winner");
 

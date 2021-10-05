@@ -11,8 +11,6 @@ import "../css/reset.css";
 import "../css/game.css";
 import "../css/page.css";
 
-//images
-import gh from "../images/gh.png";
 
 (function main() {
   const body = document.body;
@@ -36,7 +34,7 @@ import gh from "../images/gh.png";
   main.append(header, gameArea);
   
   game.attachPage(page);
-  page.setDialog(GAME_STATE.gamePrompt);
+  page.setDialog(GAME_STATE.welcomePrompt);
   footer.append(githubLink, githubIcon);
 })();
 
