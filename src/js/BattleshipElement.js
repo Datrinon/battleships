@@ -64,19 +64,20 @@ import logo from '../images/battleship.png';
 
     const gridSize = this.gameManager.players[0].gameboard.size;
     const numberCell = component.div("cell", "numbering");
+    const numberText = component.p("", "number-label");
 
+    numberCell.append(numberText);
     gameboardGrid.prepend(component.div("cell", "blank"));
 
     // create row numbering
     for (let i = 0; i < gridSize; i++) {
-      numberCell.textContent = i + 1;
+      numberText.textContent = i + 1;
       gameboardGrid.append(numberCell.cloneNode(true));
     }
 
     // create column numbering and cells
     for (let i = 0; i < gridSize; i++) {
-      numberCell.textContent = i + 1;
-
+      numberText.textContent = i + 1;
       gameboardGrid.append(numberCell.cloneNode(true));
 
       for (let j = 0; j < gridSize; j++) {

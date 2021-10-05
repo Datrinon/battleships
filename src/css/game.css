@@ -65,10 +65,6 @@
   cursor: move;
 }
 
-.draggable:hover {
-  background-color: blue;
-}
-
 .valid-drag {
   border: 1px solid rgb(0, 255, 55);
   background-color: rgba(0, 255, 64, 0.3);
@@ -76,9 +72,6 @@
 
 div.ship.ship-placed {
   position: absolute;
-  top: 0;
-  left: 0;
-  background-color: greenyellow;
   z-index: 10;
 }
 
