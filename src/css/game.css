@@ -140,17 +140,35 @@ div.ship.ship-placed:hover {
   background-color: revert;
 }
 
-.p2.gameboard .cell.attackable:hover {
+.p2.gameboard .cell.attackable:not(.attacked):hover {
   background-color: rgba(255,0,0,0.6);
   cursor: crosshair;
 }
 
+div.gameboard-area.game-active > div.gameboard .cell.attacked {
+  cursor: default;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
 .gameboard .cell.attacked::after {
-  content: "X";
   position: absolute;
   top: 0;
-  left: 0;
-  color: red;
+  left: 25%;
   visibility: unset;
   z-index: 100;
+  font-family: monospace;
+  font-size: 170%;
+  right: 25%;
+  /* bottom: 25%; */
+}
+
+.gameboard .cell.attacked.miss::after {
+  content: "○";
+  color: white;
+
+}
+
+.gameboard .cell.attacked.hit::after {
+  content: "X";
+  color: red;
 }

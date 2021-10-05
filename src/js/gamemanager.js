@@ -286,9 +286,11 @@ export default class GameManager {
     switch(result) {
       case 1: 
         console.log("It's a hit!");
+        e.currentTarget.classList.add("hit");
         break;
       case 0:
         console.log("It's a miss!");
+        e.currentTarget.classList.add("miss");
         break;
     }
     this.#p1turn = false; // CPU must make a successful move before the player moves again.
@@ -437,6 +439,8 @@ export default class GameManager {
     switch(status) {
       case 1: {
         console.log("CPU scores a hit!");
+        attackedCell.classList.add("hit");
+
         this.#page.setDialog(GAME_STATE.playerShipHit);
 
         let shipId = attackedCell.dataset.ship.split("player-ship")[1];
@@ -478,6 +482,8 @@ export default class GameManager {
       }
       case 0:
         console.log("CPU misses!");
+        attackedCell.classList.add("miss");
+
         if (p2.cpuBehavior === CPU_STATE.focused) {
           console.log("Since CPU was focused, it'll swap directions starting from the first hit.");
           p2.cpuFocusInvert = true;
