@@ -1,6 +1,6 @@
 //js 
 import { BattleshipElements } from "./BattleshipElement";
-import { GAME_STATE } from "./gamemanager";
+import { GAME_STATE, SUBDIALOGS } from "./gamemanager";
 import GameManager from "./gamemanager";
 import Player from "./player";
 import Utility from "./utility";
@@ -35,8 +35,7 @@ import "../css/page.css";
   
   game.attachPage(page);
   page.setDialog(GAME_STATE.welcomePrompt);
-  page.setSubDialog("Drag and drop ships onto the gameboard.",
-      "Click (when placed) to rotate ship.");
+  page.setSubDialog(SUBDIALOGS.controls1, SUBDIALOGS.controls2);
   footer.append(githubLink, githubIcon);
 })();
 

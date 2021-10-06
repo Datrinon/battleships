@@ -26,7 +26,9 @@ export const GAME_STATE = {
 
 export const SUBDIALOGS = {
   p1turn: "Click on the opponent gameboard to fire a shot.",
-  p2turn: "Thinking..."
+  p2turn: "Thinking...",
+  controls1: "Drag and drop ships onto the gameboard.",
+  controls2: "Click (when placed) to rotate ship."
 }
 
 
@@ -197,13 +199,8 @@ export default class GameManager {
     p1AccMetric.textContent = this.#calculateAccuracy(this.players[1]);
     p2AccMetric.textContent = this.#calculateAccuracy(this.players[0]);
 
-    // 3. ////[removed damage metrics]
-    // Instead of showing damage taken, when the game is over,
-    // just show the enemy's gameboard.
-    // TODO
-    // When debugging is complete, test out hiding battleships from the view.
     summaryContainer.querySelector(".play-again")
-        .addEventListener("click", this.#resetGame.bind(this));
+        .addEventListener("click", this.#resetGame.bind(this), {once: true});
   }
 
   /**
@@ -245,6 +242,7 @@ export default class GameManager {
     });
     document.querySelectorAll(".ship").forEach(ship => ship.remove());
     document.querySelector("#p1-name").value = this.players[0].name;
+    document.querySelector(".gameboard-owner").textContent = "Player";
 
     this.players[0] = new Player(this.players[0].name, false);
     this.players[1] = new Player(this.players[1].name, true);
@@ -254,6 +252,12 @@ export default class GameManager {
     document.querySelector(".start-game-button").disabled = false;
     this.#gameOver = false;
     this.#p1turn = true;
+
+    document.querySelectorAll(".summary-area, .menu-area, .p2.gameboard," +
+    "controls-area").forEach(area => area.classList.toggle("no-display"));
+
+    this.#page.setDialog(GAME_STATE.welcomePrompt);
+    this.#page.setSubDialog(SUBDIALOGS.controls1, SUBDIALOGS.controls2);
   }
 
   /**
@@ -273,13 +277,13 @@ export default class GameManager {
 
     if (this.#p1turn && !this.#gameOver) {
       this.#playerFireAttack(e);
-      if (this.#p1turn === false) {
-        this.#page.setDialog(GAME_STATE.p2turn);
-        this.#page.setSubDialog(SUBDIALOGS.p2turn);
+    }
 
-        setTimeout(performCPUAttack.bind(this), thinkTimer);
-      }
+    if (this.#p1turn === false && !this.#gameOver) {
+      this.#page.setDialog(GAME_STATE.p2turn);
+      this.#page.setSubDialog(SUBDIALOGS.p2turn);
 
+      setTimeout(performCPUAttack.bind(this), thinkTimer);
     }
   }
 
