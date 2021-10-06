@@ -64,14 +64,15 @@ import { setName } from "./ship";
    * @param {string[]} classNames : Additional class names to identify the gameboard by.
    */
   #gameboard(playerName, ...classNames) {
-    console.log(classNames);
-    console.log(...classNames);
     const gameboard = component.div("gameboard", ...classNames);
     const gameboardGrid = component.div("gameboard-grid");
 
     const gridSize = this.gameManager.players[0].gameboard.size;
     const numberCell = component.div("cell", "numbering");
     const numberText = component.p("", "number-label");
+
+    const shipRoster = component.div("ship-roster", "no-display");
+    const shipRosterLabel = component.p("Ship status", "ship-roster-header");
 
     numberCell.append(numberText);
     gameboardGrid.prepend(component.div("cell", "blank"));
@@ -100,6 +101,11 @@ import { setName } from "./ship";
 
     // Apply headers for the gameboard
     gameboard.prepend(component.heading(playerName, 2, "gameboard-owner"));
+
+    // Apply roster.
+    shipRoster.append(shipRosterLabel);
+    gameboard.append(shipRoster);
+    
 
     return gameboard;
   }
@@ -592,4 +598,19 @@ import { setName } from "./ship";
     return summary;
   }
 
+  /**
+   * Enumerate ship roster for each user's gameboard. These ships will be 
+   * shown as red when destroyed.
+   */
+  enumeratePlayerShipRoster() {
+    let p1Gameboard = document.querySelector(".p1.gameboard");
+
+    p1Gameboard.querySelectorAll(".ship-placed").forEach(ship => {
+      let roster = p1Gameboard.querySelector(".ship-roster");
+      let shipName = component.p(ship.dataset.name, "ship-name");
+      shipName.dataset.ship = ship.parentNode.dataset.ship;
+
+      roster.append(shipName);
+    });
+  }
 }

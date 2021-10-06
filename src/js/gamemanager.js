@@ -1,6 +1,7 @@
 import { BattleshipElements } from "./BattleshipElement";
-import component from "./component";
 import Player, { CPU_STATE } from "./player";
+import { setName } from "./ship";
+import component from "./component";
 
 /**
  * Manages a game session for battleship. Keeps track of players.
@@ -74,7 +75,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(player1, player2, p1start = true, shipLengths = [2, 3, 3, 4, 5]) {
+  constructor(player1, player2, p1start = true, shipLengths = [2]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
@@ -91,7 +92,7 @@ export default class GameManager {
    * Makes all cells "attackable."
    */
   startGame() {
-    document.querySelectorAll(".controls-area, .menu-area, .p2.gameboard")
+    document.querySelectorAll(".controls-area, .menu-area, .p2.gameboard, .ship-roster")
         .forEach(area => area.classList.toggle("no-display")); 
 
     this.players[0].name = document.querySelector("#p1-name").value;
@@ -101,6 +102,7 @@ export default class GameManager {
     document.querySelector(".p2.gameboard .gameboard-owner").textContent =
         this.players[1].name;
 
+    this.#page.enumeratePlayerShipRoster();
 
     document.querySelector(".start-game-button").disabled = true;
 
@@ -254,7 +256,7 @@ export default class GameManager {
     this.#p1turn = true;
 
     document.querySelectorAll(".summary-area, .menu-area, .p2.gameboard," +
-    "controls-area").forEach(area => area.classList.toggle("no-display"));
+    "controls-area, .ship-roster").forEach(area => area.classList.toggle("no-display"));
 
     this.#page.setDialog(GAME_STATE.welcomePrompt);
     this.#page.setSubDialog(SUBDIALOGS.controls1, SUBDIALOGS.controls2);
@@ -325,10 +327,19 @@ export default class GameManager {
     console.log(row, col);
     let result = this.players[0].attack(this.players[1], row, col);
     switch(result) {
-      case 1: 
+      case 1: {
         console.log("It's a hit!");
         e.currentTarget.classList.add("hit");
+
+        let shipId = e.currentTarget.dataset.ship.split("cpu-ship")[1];
+        let shipSunk = this.players[1].gameboard.isShipSunk(shipId);
+        if (shipSunk) {
+          document.querySelector(`.p2.gameboard .ship-name[data-ship="cpu-ship${shipId}"]`)
+              .classList.add("destroyed");
+        }
+
         break;
+      }
       case 0:
         console.log("It's a miss!");
         e.currentTarget.classList.add("miss");
@@ -346,10 +357,10 @@ export default class GameManager {
 
     switch(cpu.cpuBehavior) {
       case CPU_STATE.random: {
-        row = Math.round(Math.random() * (endIndex));
-        col = Math.round(Math.random() * (endIndex));
-        // row = 0;
-        // col = 0;
+        // row = Math.round(Math.random() * (endIndex));
+        // col = Math.round(Math.random() * (endIndex));
+        row = 0;
+        col = 0;
         break;
       }
       case CPU_STATE.found: {
@@ -483,7 +494,8 @@ export default class GameManager {
       shotsFired++;
     }
 
-    let attackedCell = document.querySelector(`.p1.gameboard .selectable[data-row="${row}"][data-col="${col}"]`)
+    let attackedCell = 
+        document.querySelector(`.p1.gameboard .selectable[data-row="${row}"][data-col="${col}"]`)
     attackedCell.classList.add("attacked");
 
     switch(status) {
@@ -499,6 +511,8 @@ export default class GameManager {
 
         let shipSunk = this.players[0].gameboard.isShipSunk(shipId);
         if (shipSunk) {
+          document.querySelector(`.p1.gameboard .ship-name[data-ship="player-ship${shipId}"]`)
+              .classList.add("destroyed");
           console.log("CPU sank that ship!");
           // TODO
           // replace with a toast appearing below the game area.
@@ -550,6 +564,8 @@ export default class GameManager {
   }
 
   #cpuPlaceShips(player) {
+    let roster = document.querySelector(".p2.gameboard");
+
     this.shipLengths.forEach((length, index) => {
       let status = null;
       let row;
@@ -564,6 +580,12 @@ export default class GameManager {
       }
 
       BattleshipElements.placeShipViaCoordinate(length, row, col, vertical, true, `cpu-ship${index}`);
+
+      // list on roster too.
+      let shipName = component.p(setName(length), "ship-name");
+      shipName.dataset.ship = `cpu-ship${index}`;
+
+      roster.append(shipName);
     });
   }
 
