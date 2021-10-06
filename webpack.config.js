@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 
 module.exports = {
   // entry: './src/index.js',
@@ -15,7 +16,8 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       title: 'Battleships',
-    })
+    }),
+    new FaviconsWebpackPlugin()
   ],
   output: {
     // filename: 'bundle.js',
