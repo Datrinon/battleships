@@ -74,7 +74,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(player1, player2, p1start = true, shipLengths = [2]) {
+  constructor(player1, player2, p1start = true, shipLengths = [2, 3, 3, 4, 5]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
@@ -346,10 +346,10 @@ export default class GameManager {
 
     switch(cpu.cpuBehavior) {
       case CPU_STATE.random: {
-        // row = Math.round(Math.random() * (endIndex));
-        // col = Math.round(Math.random() * (endIndex));
-        row = 0;
-        col = 0;
+        row = Math.round(Math.random() * (endIndex));
+        col = Math.round(Math.random() * (endIndex));
+        // row = 0;
+        // col = 0;
         break;
       }
       case CPU_STATE.found: {
@@ -424,7 +424,7 @@ export default class GameManager {
             row = cpu.cpuSecondSuccessfulHit.row - 1;
           // also in the middle, but for difference 1, then look downwards.
           } else if (rowDiff < 0) {
-            row = cpu.cpuSecondSuccessfulHit.row +  1;
+            row = cpu.cpuSecondSuccessfulHit.row + 1;
           }
           // column is a given -- keep it the same.
           col = cpu.cpuSecondSuccessfulHit.col;
@@ -466,12 +466,21 @@ export default class GameManager {
   #cpuFireAttack() {
     let p2 = this.players[1];
     let status = -1;
+    let shotsFired = 0;
+    const stuckThreshold = 10;
     let row;
     let col;
     while (status === -1) {
       [row, col] = this.#cpuAttackDetermineCoordinates(this.players[1]);
       
       status = this.players[1].attack(this.players[0], row, col);
+      
+      if(shotsFired > stuckThreshold) {
+        shotsFired = 0;
+        p2.resetCPUBehaviors();
+      }
+
+      shotsFired++;
     }
 
     let attackedCell = document.querySelector(`.p1.gameboard .selectable[data-row="${row}"][data-col="${col}"]`)
