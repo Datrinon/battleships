@@ -210,7 +210,7 @@ div.ship.draggable:hover::after {
   width: 75%;
 }
 
-.start-game-button {
+.start-game-button, .play-again {
   font-family: "Poppins";
   font-size: 1.05rem;
   width: 100%;
@@ -218,7 +218,7 @@ div.ship.draggable:hover::after {
   border-radius: 5px;
   border: none;
   background-color: rgb(255, 215, 140);
-  transition: all 0.5s ease-out;
+  transition: background-color 0.25s ease-out;
 }
 
 .start-game-button:disabled {
@@ -242,8 +242,8 @@ div.ship.draggable:hover::after {
   background-color: rgb(255, 231, 185);
 }
 
-.start-game-button:active {
-  background-color: rgb(204, 154, 62);
+.start-game-button:active, .play-again:active {
+  background-color: rgb(165, 125, 49);
 }
 
 .appear-from-bottom {
@@ -278,4 +278,50 @@ div.ship.draggable:hover::after {
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+.summary-area {
+  width: 320px;
+  margin: 15px auto;
+}
+
+.victory-message {
+  font-family: "Poppins";
+  text-align: center;
+  font-size: 150%;
+}
+
+.winner {
+  display: block;
+  text-align: center;
+  margin: 10px;
+  font-size: 115%;
+  font-weight: bold;
+}
+
+.accuracy {
+  text-align: center;
+  font-family: "Poppins";
+  font-size: 115%;
+  margin: 15px auto 0px auto;
+}
+
+.acc-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 15px;
+  font-variant-caps: petite-caps;
+}
+
+.play-again {
+  margin: 15px 0;
+}
+
+.summary-screen {
+  text-shadow: 2px 0px 3px #3c3c3c;
+  border: 1px solid #382504;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #211a3078;
+  box-shadow: 5px 3px 14px 4px #00000033;
 }

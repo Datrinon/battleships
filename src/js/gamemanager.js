@@ -191,8 +191,8 @@ export default class GameManager {
     }
 
     // 2. Show the accuracy metrics.
-    const p1AccMetric = summaryContainer.querySelector(".p1-accuracy-metric");
-    const p2AccMetric = summaryContainer.querySelector(".p2-accuracy-metric");
+    const p1AccMetric = summaryContainer.querySelector(".p1.accuracy-metric");
+    const p2AccMetric = summaryContainer.querySelector(".p2.accuracy-metric");
 
     p1AccMetric.textContent = this.#calculateAccuracy(this.players[1]);
     p2AccMetric.textContent = this.#calculateAccuracy(this.players[0]);

@@ -566,21 +566,26 @@ import { setName } from "./ship";
    */
   #summary(...classNames) {
     const summary = component.div("summary-screen", ...classNames);
-    const victoryMsg = component.p(`Game Over! Winner: `, "victory-message");
-    const winner = component.span("%", "winner");
+    const victoryMsg = component.p("Winner", "victory-message");
+    const winner = component.p("%", "winner");
 
     const statsContainer = component.div("summary-statistics");
-    const statsHeading = component.heading("Game Statistics: ", 2, "header");
-    const statsAccuracy = component.p("Accuracy: ", "accuracy");
-    const p1Accuracy = component.span("--%", "p1-accuracy-metric");
-    const p2Accuracy = component.span("--%", "p2-accuracy-metric");
+    const statsAccuracy = component.p("Accuracy", "accuracy");
+    const p1AccContainer = component.div("acc-container");
+    const p2AccContainer = component.div("acc-container");
+    const p1AccLabel = component.p(this.gameManager.players[0].name, "metric-player-name");
+    const p2AccLabel = component.p(this.gameManager.players[1].name, "metric-player-name");
+    const p1Accuracy = component.span("--%", "p1", "accuracy-metric");
+    const p2Accuracy = component.span("--%", "p2", "accuracy-metric");
 
     const playAgain = component.button("Play Again", "play-again");
 
     victoryMsg.append(winner);
 
-    statsContainer.append(statsHeading,
-      statsAccuracy, p1Accuracy, p2Accuracy);
+    p1AccContainer.append(p1AccLabel, p1Accuracy);
+    p2AccContainer.append(p2AccLabel, p2Accuracy);
+
+    statsContainer.append(statsAccuracy, p1AccContainer, p2AccContainer);
 
     summary.append(victoryMsg, winner, statsContainer, playAgain);
       
