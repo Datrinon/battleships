@@ -19,6 +19,8 @@ import "../css/page.css";
   const footer = Utility.createElement("footer", "footer");
   const githubLink = component.a("View on GitHub.", "#", "gh-link");
   const githubIcon = component.img("https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png", "gh-icon");
+  githubLink.href = "https://github.com/Datrinon/battleships";
+  githubIcon.href = "https://github.com/Datrinon/battleships";
 
   body.append(main, footer);
 
