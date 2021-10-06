@@ -54,6 +54,7 @@
 }
 
 .ship.draggable {
+  width: -moz-fit-content;
   width:fit-content;
   display: flex;
   flex-direction: row;

@@ -2,6 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 html, body {
   height: 100%;
+  overflow-x: hidden;
 }
 body {
   display: flex;
@@ -56,6 +57,7 @@ body {
 }
 
 .author {
+  width: -moz-fit-content;
   width: fit-content;
   position: relative;
   left: 66px;
@@ -158,6 +160,7 @@ div.ship.draggable:hover::after {
   font-family: monospace;
   font-size: 110%;
   width: fit-content;
+  width: -moz-fit-content;
 }
 
 .game-area {
