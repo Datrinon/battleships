@@ -75,7 +75,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(player1, player2, p1start = true, shipLengths = [2,3,3,4,5]) {
+  constructor(player1, player2, p1start = true, shipLengths = [2, 3, 3, 4, 5]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
@@ -84,6 +84,7 @@ export default class GameManager {
     this.players = player2.cpu ? [player1, player2] : [player2, player1];
     this.#p1turn = p1start;
     this.shipLengths = shipLengths;
+    this.#gameOver = false;
   }
 
   /**
@@ -101,8 +102,6 @@ export default class GameManager {
         this.players[0].name + " (You)";
     document.querySelector(".p2.gameboard .gameboard-owner").textContent =
         this.players[1].name;
-
-    this.#page.enumeratePlayerShipRoster();
 
     document.querySelector(".start-game-button").disabled = true;
 
@@ -279,11 +278,15 @@ export default class GameManager {
     }
   }
 
+  /**
+   * Register player ships onto a record and also list them on a on a view.
+   */
   #playerRegisterShips() {
     let self = this;
     let gameboard = document.querySelector(".p1.gameboard");
 
-    gameboard.querySelectorAll(".ship").forEach(ship => {
+    for (let i = 0; i < self.shipLengths.length; i++) {
+      let ship = gameboard.querySelector(`#player-ship${i}`);
       let originCell = ship.parentNode;
       let row = parseInt(originCell.dataset.row);
       let col = parseInt(originCell.dataset.col);
@@ -291,8 +294,9 @@ export default class GameManager {
       let vertical = ship.classList.contains("vertical");
 
       self.players[0].gameboard.placeShip(length, row, col, vertical);
-    });
+    }
 
+    self.#page.enumeratePlayerShipRoster();
   }
 
   /**
@@ -347,10 +351,11 @@ export default class GameManager {
 
     switch(cpu.cpuBehavior) {
       case CPU_STATE.random: {
-        // row = Math.round(Math.random() * (endIndex));
-        // col = Math.round(Math.random() * (endIndex));
-        row = 0;
-        col = 0;
+        row = Math.round(Math.random() * (endIndex));
+        col = Math.round(Math.random() * (endIndex));
+        // debug
+        // row = 0;
+        // col = 0;
         break;
       }
       case CPU_STATE.found: {
@@ -472,9 +477,9 @@ export default class GameManager {
     let row;
     let col;
     while (status === -1) {
-      [row, col] = this.#cpuAttackDetermineCoordinates(this.players[1]);
+      [row, col] = this.#cpuAttackDetermineCoordinates(p2);
       
-      status = this.players[1].attack(this.players[0], row, col);
+      status = p2.attack(this.players[0], row, col);
       
       if(shotsFired > stuckThreshold) {
         shotsFired = 0;

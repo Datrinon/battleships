@@ -327,6 +327,11 @@ div.ship.draggable:hover::after {
   text-align: center;
 }
 
+.ship-name {
+  font-variant-caps: all-petite-caps;
+  margin: 15px;
+}
+
 .ship-name::before, .ship-name.destroyed::before {
   margin-right: 10px;
   font-size: 80%;

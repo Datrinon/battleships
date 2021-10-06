@@ -604,13 +604,15 @@ import { setName } from "./ship";
    */
   enumeratePlayerShipRoster() {
     let p1Gameboard = document.querySelector(".p1.gameboard");
+    let roster = p1Gameboard.querySelector(".ship-roster");
 
-    p1Gameboard.querySelectorAll(".ship-placed").forEach(ship => {
-      let roster = p1Gameboard.querySelector(".ship-roster");
+    for (let i = 0; i < this.gameManager.shipLengths.length; i++) {
+      let ship = p1Gameboard.querySelector(`#player-ship${i}`);
       let shipName = component.p(ship.dataset.name, "ship-name");
-      shipName.dataset.ship = ship.parentNode.dataset.ship;
 
+      shipName.dataset.ship = ship.parentNode.dataset.ship;
       roster.append(shipName);
-    });
+
+    }
   }
 }

@@ -158,7 +158,7 @@ div.gameboard-area.game-active > div.gameboard .cell.attacked {
   top: 0;
   left: 25%;
   visibility: unset;
-  z-index: 100;
+  z-index: 10;
   font-family: monospace;
   font-size: 170%;
   right: 25%;
@@ -207,4 +207,8 @@ p.ship-name.destroyed::before {
   color: red;
   text-decoration: none;
   display: inline-block;
+}
+
+.ship-placer-label {
+  user-select: none;
 }
