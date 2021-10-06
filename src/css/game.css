@@ -90,8 +90,9 @@ div.ship.ship-placed:hover {
 }
 
 .cpu-ship-placed {
-  /* border: 1px solid rgb(131, 25, 25); */
-  border: 1px solid rgb(255, 255, 255);
+  border: 1px solid rgb(131, 25, 25);
+  /* debug */
+  /* border: 1px solid rgb(255, 255, 255);  */
   background-color: rgba(32, 2, 2, 0.72);
 }
 
@@ -132,10 +133,6 @@ div.ship.ship-placed:hover {
 
 .gameboard-area {
   transition: border 0.7s;
-}
-
-.gameboard-area.game-active {
-  /* border: 1px solid red; */
 }
 
 .p1.gameboard .cell.attackable .ship {
@@ -195,6 +192,10 @@ div.gameboard-area.game-active > div.gameboard .cell.attacked {
   }
 }
 
+.ship-name::before {
+  content: "〇";
+}
+
 .ship-name.destroyed {
   color: #ff2424ab;
   /* font-style: italic; */
@@ -202,7 +203,6 @@ div.gameboard-area.game-active > div.gameboard .cell.attacked {
 }
 
 p.ship-name.destroyed::before {
-  content: "";
   content: "⦻";
   color: red;
   text-decoration: none;

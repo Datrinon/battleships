@@ -75,7 +75,7 @@ export default class GameManager {
    * @param {boolean} p1start - Should player 1 start first? True by default.
    * @returns 
    */
-  constructor(player1, player2, p1start = true, shipLengths = [2]) {
+  constructor(player1, player2, p1start = true, shipLengths = [2,3,3,4,5]) {
     if (GameManager.#instance !== undefined) {
       return GameManager.#instance;
     } 
@@ -121,36 +121,24 @@ export default class GameManager {
     // register ships for the player.
     this.#playerRegisterShips();
 
-    // TODO
-    // remove this promise code, effect looks lame.
-    (() => {
-      return new Promise((resolve) => {
-        this.#page.setDialog(GAME_STATE.playing);
-        setTimeout(() => {
-          if (GameManager.#instance.#p1turn) {
-            return resolve(GAME_STATE.p1turn);
-          } else {
-            return resolve(GAME_STATE.p2turn);
-          }
-          }, 0);
-      });
-    })().then((result) => {
-      this.#page.setDialog(result);
-      if (this.#p1turn) {
-        this.#page.setSubDialog(SUBDIALOGS.p1turn);
-      } else {
-        this.#page.setSubDialog(SUBDIALOGS.p2turn);
-      }
-      document.querySelector(".gameboard-area").classList.add("game-active");
-      document.querySelectorAll(".selectable").forEach(cell => {
-        cell.classList.add("attackable");
-      });
+    this.#page.setDialog(GAME_STATE.playing);
 
-      const self = this;
-      document.querySelectorAll(".p2.gameboard .attackable").forEach(cell => {
-        cell.addEventListener("click", self.#playRound.bind(this));
-      })
-    })
+    if (this.#p1turn) {
+      this.#page.setDialog(GAME_STATE.p1turn);
+      this.#page.setSubDialog(SUBDIALOGS.p1turn);
+    } else {
+      this.#page.setDialog(GAME_STATE.p2turn);
+      this.#page.setSubDialog(SUBDIALOGS.p2turn);
+    }
+
+    document.querySelector(".gameboard-area").classList.add("game-active");
+    document.querySelectorAll(".selectable").forEach(
+      cell => cell.classList.add("attackable"));
+
+    const self = this;
+    document.querySelectorAll(".p2.gameboard .attackable").forEach(cell => {
+      cell.addEventListener("click", self.#playRound.bind(this));
+    });
   }
 
   /**
@@ -238,6 +226,8 @@ export default class GameManager {
    * - Allowing the user to start the game again.
    */
   #resetGame() {
+    document.querySelectorAll(".ship-name").forEach(shipName => shipName.remove());
+
     document.querySelectorAll(".selectable").forEach(cell => {
       cell.className = "cell selectable";
       cell.dataset.ship = "";
@@ -279,13 +269,13 @@ export default class GameManager {
 
     if (this.#p1turn && !this.#gameOver) {
       this.#playerFireAttack(e);
-    }
 
-    if (this.#p1turn === false && !this.#gameOver) {
-      this.#page.setDialog(GAME_STATE.p2turn);
-      this.#page.setSubDialog(SUBDIALOGS.p2turn);
-
-      setTimeout(performCPUAttack.bind(this), thinkTimer);
+      if (!this.#gameOver) {
+        this.#page.setDialog(GAME_STATE.p2turn);
+        this.#page.setSubDialog(SUBDIALOGS.p2turn);
+  
+        setTimeout(performCPUAttack.bind(this), thinkTimer);
+      }
     }
   }
 
@@ -503,10 +493,6 @@ export default class GameManager {
         console.log("CPU scores a hit!");
         attackedCell.classList.add("hit");
 
-        // this.#page.setDialog(GAME_STATE.playerShipHit);
-        // TODO
-        // replace with a toast.
-
         let shipId = attackedCell.dataset.ship.split("player-ship")[1];
 
         let shipSunk = this.players[0].gameboard.isShipSunk(shipId);
@@ -514,9 +500,6 @@ export default class GameManager {
           document.querySelector(`.p1.gameboard .ship-name[data-ship="player-ship${shipId}"]`)
               .classList.add("destroyed");
           console.log("CPU sank that ship!");
-          // TODO
-          // replace with a toast appearing below the game area.
-          // this.#page.setDialog(GAME_STATE.playerShipSunk);
         }
 
         // The CPU has made its first successful hit against a ship! 

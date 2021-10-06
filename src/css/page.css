@@ -225,10 +225,6 @@ div.ship.draggable:hover::after {
   background-color: grey;
 }
 
-.subdialog-area {
-  /* animation: pull-open 1.25s; */
-}
-
 @keyframes pull-open {
   from {
     transform: scaleY(0.1);
@@ -268,11 +264,11 @@ div.ship.draggable:hover::after {
 @keyframes appear-from-right {
   0% {
     opacity: 0;
-    transform: translateX(10px);
+    transform: translateX(5px);
   }
   30% {
     opacity: 0;
-    transform: translateX(10px);
+    transform: translateX(5px);
   }
   100% {
     opacity: 1;
@@ -326,3 +322,14 @@ div.ship.draggable:hover::after {
   box-shadow: 5px 3px 14px 4px #00000033;
 }
 
+.ship-roster-header {
+  font-variant-caps: all-petite-caps;
+  text-align: center;
+}
+
+.ship-name::before, .ship-name.destroyed::before {
+  margin-right: 10px;
+  font-size: 80%;
+  position: relative;
+  bottom: 1px;
+}

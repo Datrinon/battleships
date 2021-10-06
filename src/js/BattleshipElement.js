@@ -72,7 +72,7 @@ import { setName } from "./ship";
     const numberText = component.p("", "number-label");
 
     const shipRoster = component.div("ship-roster", "no-display");
-    const shipRosterLabel = component.p("Ship status", "ship-roster-header");
+    const shipRosterLabel = component.p("status", "ship-roster-header");
 
     numberCell.append(numberText);
     gameboardGrid.prepend(component.div("cell", "blank"));
